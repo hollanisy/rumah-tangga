@@ -750,16 +750,16 @@ function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toStrin
 
 function defaultBudgetCategories(){
   const items = [
-    ['Cicilan Emas', 2500000, 'Pos wajib'],
-    ['Bantuan Renovasi Rumah Ortu (Bapak)', 500000, 'Pos sosial/keluarga'],
-    ['Internet Ortu', 100000, 'Pos sosial/keluarga'],
+    ['Cicilan / Utang', 500000, 'Pos wajib'],
+    ['Bantuan Keluarga', 300000, 'Pos sosial/keluarga'],
+    ['Tagihan Internet', 150000, 'Pos sosial/keluarga'],
     ['Belanja Dapur / Food Prep', 800000, 'Pos kebutuhan'],
-    ['Listrik', 350000, 'Pos kebutuhan'],
+    ['Listrik', 300000, 'Pos kebutuhan'],
     ['Air', 100000, 'Pos kebutuhan'],
-    ['Uang Jajan Istri', 650000, 'Pos pribadi'],
+    ['Uang Jajan Istri', 500000, 'Pos pribadi'],
     ['Uang Jajan Suami', 500000, 'Pos pribadi'],
-    ['Skincare / Body Care', 300000, 'Pos pribadi'],
-    ['Investasi Saham / Reksadana (Bibit, Ajaib, Pluang)', 500000, 'Pos investasi/tabungan'],
+    ['Perawatan Diri', 200000, 'Pos pribadi'],
+    ['Investasi / Tabungan Rutin', 500000, 'Pos investasi/tabungan'],
   ];
   return items.map((it,i)=>({ id:uid(), name:it[0], budget:it[1], note:it[2], color:COLOR_PALETTE[i%COLOR_PALETTE.length] }));
 }
@@ -781,20 +781,14 @@ function defaultMeals(){
 
 function defaultGoals(){
   return [
-    {id:uid(), year:'2026', name:'Cicil Emas', monthly:2500000, months:12, saved:0},
-    {id:uid(), year:'2026', name:'Dana Darurat (RDPU)', monthly:1000000, months:12, saved:0},
-    {id:uid(), year:'2026', name:'Pinjami Adek (Feb–Juni)', monthly:500000, months:6, saved:0},
-    {id:uid(), year:'2026', name:'Musholla (Saham)', monthly:500000, months:6, saved:0},
-    {id:uid(), year:'2027', name:'Cicil Emas (Jan–Sep)', monthly:2500000, months:9, saved:0},
-    {id:uid(), year:'2027', name:'Tabungan Cash (Okt–Des)', monthly:2500000, months:3, saved:0},
-    {id:uid(), year:'2027', name:'Dana Darurat (RDPU)', monthly:1000000, months:12, saved:0},
-    {id:uid(), year:'2027', name:'Tabungan Saham', monthly:500000, months:12, saved:0},
-    {id:uid(), year:'2028', name:'Tabungan Umroh', monthly:2500000, months:12, saved:0},
-    {id:uid(), year:'2028', name:'Dana Darurat (RDPU)', monthly:1000000, months:12, saved:0},
-    {id:uid(), year:'2028', name:'Tabungan Saham', monthly:500000, months:12, saved:0},
-    {id:uid(), year:'2029', name:'Tabungan Umroh', monthly:2500000, months:12, saved:0},
-    {id:uid(), year:'2029', name:'Dana Darurat (RDPU)', monthly:1000000, months:12, saved:0},
-    {id:uid(), year:'2029', name:'Tabungan Saham', monthly:500000, months:12, saved:0},
+    {id:uid(), year:'2026', name:'Dana Darurat', monthly:500000, months:12, saved:0},
+    {id:uid(), year:'2026', name:'Contoh: Cicilan/Tabungan Emas', monthly:500000, months:12, saved:0},
+    {id:uid(), year:'2027', name:'Dana Darurat', monthly:500000, months:12, saved:0},
+    {id:uid(), year:'2027', name:'Tabungan Saham / Reksadana', monthly:300000, months:12, saved:0},
+    {id:uid(), year:'2028', name:'Dana Darurat', monthly:500000, months:12, saved:0},
+    {id:uid(), year:'2028', name:'Contoh: Tabungan Liburan / Ibadah', monthly:500000, months:12, saved:0},
+    {id:uid(), year:'2029', name:'Dana Darurat', monthly:500000, months:12, saved:0},
+    {id:uid(), year:'2029', name:'Contoh: Tabungan Liburan / Ibadah', monthly:500000, months:12, saved:0},
   ];
 }
 
