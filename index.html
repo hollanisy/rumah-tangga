@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rumah Tangga Kita</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7E9772">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Rumah Tangga">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<script src="https://accounts.google.com/gsi/client" async defer onload="initGoogleAuth()"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF6ED;
+    --card:#FFFDF8;
+    --sage:#7E9772;
+    --sage-dark:#5C7351;
+    --sage-light:#E1E9D9;
+    --blush:#E8B4AE;
+    --blush-dark:#D3897F;
+    --gold:#D9A566;
+    --gold-light:#F3E3C9;
+    --blue:#8CA9C4;
+    --blue-light:#DCE7EF;
+    --plum:#453842;
+    --plum-soft:#8A7B81;
+    --line:#EBE0D0;
+    --shadow: 0 6px 20px rgba(69,56,66,0.08);
+    --shadow-sm: 0 2px 8px rgba(69,56,66,0.06);
+    --radius: 20px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    background-image:
+      radial-gradient(circle at 8% 10%, rgba(126,151,114,0.07), transparent 40%),
+      radial-gradient(circle at 92% 85%, rgba(232,180,174,0.10), transparent 40%);
+    font-family:'Quicksand', sans-serif;
+    color:var(--plum);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Fraunces', serif; }
+  button, input, select, textarea{ font-family:'Quicksand', sans-serif; }
+  ::selection{ background:var(--sage-light); }
+  a{ color:var(--sage-dark); }
+
+  /* ---------- Layout shell ---------- */
+  .app{ display:flex; min-height:100vh; max-width:1240px; margin:0 auto; }
+  .sidebar{
+    width:238px; flex-shrink:0; padding:26px 14px; display:none; flex-direction:column; gap:4px;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; padding:0 12px 20px 12px; }
+  .brand .mark{
+    width:38px;height:38px;border-radius:12px;
+    background:linear-gradient(145deg, var(--sage), var(--sage-dark));
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px; box-shadow:var(--shadow-sm);
+  }
+  .brand .name{ font-family:'Fraunces', serif; font-weight:600; font-size:15.5px; line-height:1.15; }
+  .brand .name small{ display:block; font-family:'Quicksand'; font-weight:500; font-size:11px; color:var(--plum-soft); }
+
+  .navitem{
+    display:flex; align-items:center; gap:11px;
+    padding:10px 13px; border-radius:14px; cursor:pointer;
+    font-weight:600; font-size:13.5px; color:var(--plum-soft);
+    transition:background .15s, color .15s;
+    border:none; background:none; text-align:left; width:100%;
+  }
+  .navitem .ic{ font-size:17px; width:20px; text-align:center; }
+  .navitem:hover{ background:rgba(126,151,114,0.10); color:var(--plum); }
+  .navitem.active{ background:var(--sage); color:#fff; box-shadow:var(--shadow-sm); }
+
+  main{ flex:1; padding:20px 16px 100px 16px; min-width:0; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .mobile-brand{ display:flex; align-items:center; gap:8px; }
+  .mobile-brand .mark{ width:32px;height:32px;border-radius:10px; background:linear-gradient(145deg, var(--sage), var(--sage-dark)); display:flex;align-items:center;justify-content:center; font-size:16px; }
+  .mobile-brand .title{ font-family:'Fraunces', serif; font-size:15.5px; font-weight:600; }
+  .sub{ font-size:12px; color:var(--plum-soft); }
+
+  .tab{ display:none; animation: fadeIn .25s ease; }
+  .tab.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .card{ background:var(--card); border-radius:var(--radius); border:1px solid var(--line); box-shadow:var(--shadow-sm); padding:17px; }
+  .grid{ display:grid; gap:14px; }
+  .grid-3{ grid-template-columns:repeat(3,1fr); }
+  .grid-2{ grid-template-columns:repeat(2,1fr); }
+  @media (max-width:700px){ .grid-3{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:480px){ .grid-3, .grid-2{ grid-template-columns:1fr; } }
+
+  .stat{ display:flex; flex-direction:column; gap:4px; }
+  .stat .label{ font-size:12.5px; color:var(--plum-soft); font-weight:600; display:flex; align-items:center; gap:6px;}
+  .stat .value{ font-family:'Fraunces', serif; font-size:21px; font-weight:600; }
+  .stat.income .value{ color:var(--sage-dark); }
+  .stat.expense .value{ color:var(--blush-dark); }
+
+  .section-title{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; margin:24px 0 11px 0; display:flex; align-items:center; gap:8px; }
+  .section-title:first-child{ margin-top:0; }
+  .section-sub{ font-size:12px; color:var(--plum-soft); margin:-6px 0 12px 0; line-height:1.5; }
+
+  /* buttons */
+  .btn{ display:inline-flex; align-items:center; gap:7px; background:var(--sage); color:#fff; border:none; border-radius:12px; padding:9px 16px; font-weight:700; font-size:13.5px; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform .1s, background .15s; white-space:nowrap;}
+  .btn:hover{ background:var(--sage-dark); }
+  .btn:active{ transform:scale(0.97); }
+  .btn.ghost{ background:transparent; color:var(--sage-dark); border:1.5px solid var(--sage); box-shadow:none; }
+  .btn.ghost:hover{ background:var(--sage-light); }
+  .btn.blush{ background:var(--blush-dark); } .btn.blush:hover{ background:#bd6f66; }
+  .btn.gold{ background:var(--gold); } .btn.gold:hover{ background:#c08d4c; }
+  .btn.sm{ padding:6px 11px; font-size:12px; border-radius:9px; }
+  .iconbtn{ background:none; border:none; cursor:pointer; font-size:15px; color:var(--plum-soft); padding:4px 6px; border-radius:8px; }
+  .iconbtn:hover{ background:rgba(0,0,0,0.05); color:var(--plum); }
+
+  input[type=text], input[type=number], input[type=date], select, textarea{
+    width:100%; padding:9px 12px; border-radius:11px; border:1.5px solid var(--line);
+    background:#fff; font-size:13.5px; color:var(--plum); outline:none; transition:border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus{ border-color:var(--sage); }
+  label.field{ font-size:12px; font-weight:700; color:var(--plum-soft); margin-bottom:5px; display:block; }
+  .form-row{ margin-bottom:12px; }
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:480px){ .form-grid{ grid-template-columns:1fr; } }
+
+  .empty{ text-align:center; padding:28px 10px; color:var(--plum-soft); font-size:13px; }
+  .empty .emoji{ font-size:28px; display:block; margin-bottom:8px; }
+
+  /* chips / filters */
+  .chips{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px; }
+  .chip{ padding:7px 15px; border-radius:20px; background:#fff; border:1.5px solid var(--line); font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; color:var(--plum-soft); flex-shrink:0; }
+  .chip.active{ background:var(--sage); color:#fff; border-color:var(--sage); }
+
+  /* ---- Anggaran: budget vs actual ---- */
+  .budget-row{ background:#fff; border:1px solid var(--line); border-radius:15px; padding:12px 15px; margin-bottom:9px; position:relative; }
+  .budget-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .budget-name{ font-weight:700; font-size:13.5px; }
+  .budget-note{ font-size:11px; color:var(--plum-soft); margin-top:1px; }
+  .budget-nums{ font-size:11.5px; color:var(--plum-soft); text-align:right; white-space:nowrap; }
+  .budget-diff{ font-weight:700; }
+  .budget-diff.pos{ color:var(--sage-dark); }
+  .budget-diff.neg{ color:var(--blush-dark); }
+  .budget-actions{ display:flex; gap:2px; }
+  .bar-bg{ background:var(--sage-light); border-radius:20px; height:9px; overflow:hidden; }
+  .bar-fg{ background:linear-gradient(90deg, var(--gold), var(--sage)); height:100%; border-radius:20px; transition:width .5s ease; }
+  .bar-fg.over{ background:linear-gradient(90deg, var(--blush-dark), var(--blush)); }
+  .tsum-row{ display:flex; justify-content:space-between; font-weight:700; font-size:13.5px; padding-top:10px; margin-top:6px; border-top:1.5px dashed var(--line); }
+
+  /* transaction list */
+  .tlist{ display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+  .trow{ display:flex; align-items:center; justify-content:space-between; padding:11px 13px; background:#fff; border:1px solid var(--line); border-radius:13px; gap:10px; }
+  .trow .left{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .trow .badge{ font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap; color:#fff; }
+  .trow .meta{ min-width:0; }
+  .trow .desc{ font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .trow .date{ font-size:11px; color:var(--plum-soft); }
+  .trow .amt{ font-weight:700; font-size:13.5px; white-space:nowrap; }
+  .amt.pos{ color:var(--sage-dark); } .amt.neg{ color:var(--blush-dark); }
+
+  /* goals */
+  .goal-year{ margin-bottom:22px; }
+  .goal-year h4{ font-family:'Fraunces'; font-size:15px; margin:0 0 10px 2px; color:var(--sage-dark); }
+  .goal-card{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px 16px; margin-bottom:10px; position:relative; }
+  .goal-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:9px;}
+  .goal-name{ font-weight:700; font-size:14px; }
+  .goal-target{ font-size:11.5px; color:var(--plum-soft); }
+  .goal-bottom{ display:flex; justify-content:space-between; align-items:center; margin-top:7px; font-size:11.5px; color:var(--plum-soft); }
+  .goal-actions{ position:absolute; top:12px; right:12px; display:flex; gap:2px; }
+
+  /* meal planner */
+  .protein-tracker{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:16px; }
+  .protein-pill{ flex-shrink:0; padding:7px 13px; border-radius:20px; font-size:12px; font-weight:700; background:var(--sage-light); color:var(--sage-dark); white-space:nowrap; }
+  .protein-pill.zero{ background:var(--gold-light); color:#8a622b; }
+  .week-scroll{ display:flex; gap:14px; overflow-x:auto; padding-bottom:10px; scroll-snap-type:x proximity; }
+  .day-card{ min-width:230px; scroll-snap-align:start; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:14px; box-shadow:var(--shadow-sm); position:relative; }
+  .day-title{ font-family:'Fraunces'; font-weight:600; font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:8px; color:var(--sage-dark); }
+  .meal-slot{ background:#fff; border:1px dashed var(--line); border-radius:13px; padding:10px 11px; margin-bottom:8px; }
+  .meal-slot .mtype{ font-size:10.5px; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:.4px; }
+  .meal-slot .dish{ font-weight:700; font-size:13.5px; margin:3px 0 6px 0; }
+  .meal-slot .recipe-link{ font-size:11.5px; font-weight:600; display:inline-flex; align-items:center; gap:4px; text-decoration:none; }
+  .meal-thumb{ width:100%; height:64px; object-fit:cover; border-radius:9px; margin-bottom:6px; background:var(--sage-light); }
+  .meal-note{ font-size:11px; color:var(--plum-soft); margin-top:6px; line-height:1.4; }
+  .meal-edit-btn{ position:absolute; top:10px; right:10px; }
+
+  /* shopping */
+  .shop-item{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:9px 12px; margin-bottom:7px; flex-wrap:wrap; }
+  .shop-item.checked .sname{ text-decoration:line-through; color:var(--plum-soft); }
+  .checkbox{ width:19px; height:19px; border-radius:7px; border:1.6px solid var(--sage); flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; color:#fff; }
+  .checkbox.on{ background:var(--sage); }
+  .sname{ font-weight:600; font-size:13.5px; }
+  .sqty{ font-size:11.5px; color:var(--plum-soft); }
+  .shop-cat-badge{ font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+  .shop-price{ font-size:11.5px; font-weight:700; color:var(--plum-soft); margin-left:auto; }
+  .shop-total-bar{ display:flex; justify-content:space-between; font-weight:700; font-size:13px; padding:10px 4px 2px 4px; border-top:1.5px dashed var(--line); margin-top:8px; }
+  .history-toggle{ font-size:12px; font-weight:700; color:var(--sage-dark); cursor:pointer; margin:16px 0 8px 0; display:flex; align-items:center; gap:5px; }
+
+  /* inventory */
+  .inv-row{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:11px 14px; margin-bottom:8px; }
+  .inv-top{ display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+  .inv-name{ font-weight:700; font-size:13.5px; }
+  .inv-meta{ font-size:11.5px; color:var(--plum-soft); margin-top:3px; line-height:1.5; }
+  .inv-badge{ font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap; }
+
+  /* chores */
+  .chore-group{ margin-bottom:20px; }
+  .chore-group h4{ font-family:'Fraunces'; font-size:14.5px; margin:0 0 10px 2px; color:var(--sage-dark); display:flex; align-items:center; gap:8px; }
+  .chore-row{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:13px; padding:10px 12px; margin-bottom:8px; flex-wrap:wrap; }
+  .chore-name{ font-weight:700; font-size:13.5px; flex:1; min-width:110px; }
+  .chore-pic-badge{ font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; background:var(--blue-light); color:#3f5b73; white-space:nowrap; }
+  .chore-status-btn{ font-size:11px; font-weight:700; padding:6px 13px; border-radius:20px; border:none; cursor:pointer; white-space:nowrap; }
+  .status-belum{ background:#EFE9E2; color:var(--plum-soft); }
+  .status-proses{ background:var(--gold-light); color:#8a622b; }
+  .status-selesai{ background:var(--sage-light); color:var(--sage-dark); }
+
+  /* modal */
+  .overlay{ position:fixed; inset:0; background:rgba(69,56,66,0.35); backdrop-filter:blur(2px); display:none; align-items:flex-end; justify-content:center; z-index:50; }
+  .overlay.show{ display:flex; }
+  .modal{ background:var(--cream); width:100%; max-width:460px; border-radius:22px 22px 0 0; padding:22px 20px 26px 20px; box-shadow:0 -10px 30px rgba(0,0,0,0.15); max-height:88vh; overflow-y:auto; animation: slideUp .22s ease; }
+  @media (min-width:700px){ .overlay{ align-items:center; } .modal{ border-radius:22px; } }
+  @keyframes slideUp{ from{ transform:translateY(30px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
+  .modal h3{ margin:0 0 16px 0; font-size:17px; }
+
+  /* bottom nav (mobile) — horizontally scrollable so it scales with more tabs */
+  .bottomnav{ position:fixed; left:0; right:0; bottom:0; z-index:40; background:var(--card); border-top:1px solid var(--line); display:flex; overflow-x:auto; padding:8px 6px 10px 6px; box-shadow:0 -4px 16px rgba(69,56,66,0.06); gap:2px; }
+  .bottomnav .navitem{ flex-direction:column; align-items:center; gap:2px; padding:6px 8px; font-size:9.5px; border-radius:12px; width:auto; flex:0 0 auto; min-width:60px; }
+  .bottomnav .navitem .ic{ font-size:18px; }
+  .bottomnav .navitem.active{ background:var(--sage-light); color:var(--sage-dark); }
+
+  @media (min-width:768px){
+    .sidebar{ display:flex; }
+    .bottomnav{ display:none; }
+    main{ padding:32px 34px 40px 20px; }
+  }
+
+  .hint{ font-size:12px; color:var(--plum-soft); margin-top:6px; line-height:1.5; }
+  .toast{ position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:var(--plum); color:#fff; padding:10px 18px; border-radius:30px; font-size:13px; font-weight:600; z-index:60; opacity:0; pointer-events:none; transition:opacity .25s, bottom .25s; max-width:90vw; text-align:center;}
+  .toast.show{ opacity:1; bottom:100px; }
+  @media (min-width:768px){ .toast{ bottom:30px;} .toast.show{ bottom:40px; } }
+
+  /* ---------- Login screen ---------- */
+  .app{ display:none; }
+  .login-screen{
+    position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:22px;
+    background:var(--cream);
+    background-image:
+      radial-gradient(circle at 8% 10%, rgba(126,151,114,0.09), transparent 40%),
+      radial-gradient(circle at 92% 85%, rgba(232,180,174,0.13), transparent 40%);
+  }
+  .login-card{
+    background:var(--card); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow);
+    padding:38px 28px; max-width:380px; width:100%; text-align:center;
+  }
+  .login-card .mark{
+    width:64px; height:64px; border-radius:20px; margin:0 auto 18px auto;
+    background:linear-gradient(145deg, var(--sage), var(--sage-dark));
+    display:flex; align-items:center; justify-content:center; font-size:32px; box-shadow:var(--shadow-sm);
+  }
+  .login-card h1{ font-size:20px; margin:0 0 8px 0; }
+  .login-card p{ font-size:13px; color:var(--plum-soft); line-height:1.6; margin:0 0 22px 0; }
+  .login-card .btn{ width:100%; justify-content:center; margin-bottom:10px; }
+  #loginStatus{ min-height:16px; }
+
+  /* ---------- User badge (topbar) ---------- */
+  .user-badge{ display:flex; align-items:center; gap:8px; }
+  .user-badge img{ width:30px; height:30px; border-radius:50%; border:1.5px solid #fff; box-shadow:var(--shadow-sm); }
+  .user-badge .uname{ font-size:12px; font-weight:700; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .user-badge .avatar-fallback{
+    width:30px; height:30px; border-radius:50%; background:var(--sage); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;
+  }
+</style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="mark">🏡</div>
+    <h1>Rumah Tangga Kita</h1>
+    <p>Masuk dengan akun Google untuk menyimpan data ke Google Drive milikmu sendiri. Setiap akun punya data yang privat dan terpisah, tidak akan tercampur dengan akun lain.</p>
+    <button class="btn" id="googleSignInBtn" onclick="handleGoogleLogin()">🔐 Masuk dengan Google</button>
+    <button class="btn ghost" onclick="continueOffline()">Lanjut tanpa akun (data hanya di perangkat ini)</button>
+    <div class="hint" id="loginStatus"></div>
+  </div>
+</div>
+
+<div class="app" id="appRoot">
+  <!-- Desktop sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="mark">🏡</div>
+      <div class="name">Rumah Tangga Kita<small>Sistem terintegrasi</small></div>
+    </div>
+    <button class="navitem" data-tab="beranda"><span class="ic">🏠</span> Beranda</button>
+    <button class="navitem" data-tab="anggaran"><span class="ic">💰</span> Anggaran</button>
+    <button class="navitem" data-tab="target"><span class="ic">🎯</span> Target Tabungan</button>
+    <button class="navitem" data-tab="menu"><span class="ic">🍲</span> Menu Masakan</button>
+    <button class="navitem" data-tab="belanja"><span class="ic">🛒</span> Belanja</button>
+    <button class="navitem" data-tab="stok"><span class="ic">🧊</span> Stok Barang</button>
+    <button class="navitem" data-tab="rutinitas"><span class="ic">🧹</span> Rutinitas</button>
+    <div class="hint" style="padding:12px 12px 0 12px;">Data tersimpan otomatis di perangkat ini 🌿</div>
+    <div style="padding:10px 12px 0 12px; display:flex; gap:8px;">
+      <button class="btn ghost sm" onclick="exportData()" style="padding:4px 8px; font-size:11px;">📤 Ekspor</button>
+      <button class="btn ghost sm" onclick="importData()" style="padding:4px 8px; font-size:11px;">📥 Impor</button>
+    </div>
+    <div id="sidebarAccount" style="padding:14px 12px 0 12px;"></div>
+  </nav>
+
+  <main>
+    <div class="topbar">
+      <div class="mobile-brand">
+        <div class="mark">🏡</div>
+        <div class="title">Rumah Tangga Kita</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="text-align:right;">
+          <div class="sub" id="todayLabel"></div>
+        </div>
+        <div id="topbarAccount"></div>
+      </div>
+    </div>
+
+    <!-- ============ BERANDA ============ -->
+    <section class="tab active" id="tab-beranda">
+      <div class="grid grid-3">
+        <div class="card stat">
+          <div class="label">💵 Pemasukan bulan ini</div>
+          <div class="value" id="statIncome">Rp0</div>
+        </div>
+        <div class="card stat expense">
+          <div class="label">🧾 Pengeluaran bulan ini</div>
+          <div class="value" id="statExpense">Rp0</div>
+        </div>
+        <div class="card stat">
+          <div class="label">🌾 Sisa saldo</div>
+          <div class="value" id="statBalance">Rp0</div>
+        </div>
+      </div>
+
+      <div class="section-title">📊 Anggaran vs realisasi bulan ini</div>
+      <div class="card" id="budgetOverview"></div>
+
+      <div class="section-title">📌 Target tabungan terdekat</div>
+      <div class="card" id="nearestGoals"></div>
+
+      <div class="section-title">🧊 Perlu perhatian di stok</div>
+      <div class="card" id="stokAlerts"></div>
+
+      <div class="section-title">🕓 Transaksi terbaru</div>
+      <div class="card"><div class="tlist" id="recentTx"></div></div>
+    </section>
+
+    <!-- ============ ANGGARAN ============ -->
+    <section class="tab" id="tab-anggaran">
+      <div class="card" style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <div>
+          <div class="section-title" style="margin:0;">💾 Cadangan data</div>
+          <div class="hint" style="margin-top:2px;">Simpan atau pulihkan semua data dari file JSON, terutama di HP agar tidak hilang.</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn ghost sm" onclick="exportData()">📤 Ekspor</button>
+          <button class="btn ghost sm" onclick="importData()">📥 Impor</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-title" style="margin-top:0;">👛 Pemasukan bulanan (referensi)</div>
+        <div class="form-row">
+          <label class="field">Nominal gaji / pemasukan bulanan (Rp)</label>
+          <input type="number" id="inputGaji" placeholder="cth. 4000000" onchange="saveGaji()">
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:0;">
+        📋 Pos Anggaran (Budget vs Actual)
+        <button class="btn sm" style="margin-left:auto;" onclick="openBudgetCatModal()">+ Tambah pos</button>
+      </div>
+      <p class="section-sub">Alokasi budget dibandingkan realisasi pengeluaran tiap pos — cicilan, sosial, kebutuhan, pribadi, sampai investasi.</p>
+      <div class="card" id="budgetCatsWrap"></div>
+
+      <div class="section-title">
+        📝 Catatan transaksi
+        <button class="btn sm" style="margin-left:auto;" onclick="openTxModal()">+ Tambah</button>
+      </div>
+      <div class="card">
+        <div class="form-row" style="display:flex; gap:8px; margin-bottom:14px;">
+          <select id="filterCategory" onchange="renderTransactions()" style="flex:1;">
+            <option value="all">Semua pos</option>
+          </select>
+        </div>
+        <div class="tlist" id="txList"></div>
+      </div>
+    </section>
+
+    <!-- ============ TARGET TABUNGAN ============ -->
+    <section class="tab" id="tab-target">
+      <div class="section-title" style="margin-top:0;">
+        🎯 Target &amp; rencana tabungan
+        <button class="btn sm" style="margin-left:auto;" onclick="openGoalModal()">+ Tambah target</button>
+      </div>
+      <div id="goalsWrap"></div>
+    </section>
+
+    <!-- ============ MENU MASAKAN ============ -->
+    <section class="tab" id="tab-menu">
+      <div class="section-title" style="margin-top:0;">🍲 Rencana menu masakan (4 minggu, Senin–Sabtu)</div>
+      <p class="section-sub">Rotasi protein supaya adil & tidak bosan. Ketuk kartu untuk mengubah menu, menempelkan link resep, atau menambahkan foto masakan.</p>
+      <div class="chips" id="weekChips"></div>
+      <div class="protein-tracker" id="proteinTracker"></div>
+      <div class="week-scroll" id="weekWrap"></div>
+    </section>
+
+    <!-- ============ BELANJA ============ -->
+    <section class="tab" id="tab-belanja">
+      <div class="section-title" style="margin-top:0;">
+        🛒 Daftar belanja
+        <button class="btn sm" style="margin-left:auto;" onclick="openShopModal()">+ Tambah item</button>
+      </div>
+      <div class="chips" id="shopFilterChips"></div>
+      <div class="card">
+        <div id="shopList"></div>
+        <div class="shop-total-bar"><span>Estimasi belanja tersisa</span><span id="shopTotal">Rp0</span></div>
+      </div>
+      <div class="history-toggle" onclick="toggleShopHistory()">📜 <span id="historyToggleLabel">Tampilkan riwayat pembelian</span></div>
+      <div class="card" id="shopHistoryWrap" style="display:none;"></div>
+    </section>
+
+    <!-- ============ STOK BARANG ============ -->
+    <section class="tab" id="tab-stok">
+      <div class="section-title" style="margin-top:0;">
+        🧊 Stok Barang
+        <button class="btn sm" style="margin-left:auto;" onclick="openInvModal()">+ Tambah stok</button>
+      </div>
+      <p class="section-sub">Dipisah per kategori: Bahan Makanan, Kulkas &amp; Freezer, Dapur, Housekeeping, dan Toiletries — supaya gampang dipantau dan tidak ada yang mendadak habis atau kadaluwarsa.</p>
+      <div class="chips" id="invFilterChips"></div>
+      <div class="card" id="invWrap"></div>
+    </section>
+
+    <!-- ============ RUTINITAS ============ -->
+    <section class="tab" id="tab-rutinitas">
+      <div class="section-title" style="margin-top:0;">
+        🧹 Rutinitas &amp; bersih-bersih
+        <button class="btn sm" style="margin-left:auto;" onclick="openChoreModal()">+ Tambah kegiatan</button>
+      </div>
+      <p class="section-sub">Kegiatan harian, mingguan, dan bulanan supaya pekerjaan rumah tidak menumpuk.</p>
+      <div id="choresWrap"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Bottom nav mobile -->
+<nav class="bottomnav">
+  <button class="navitem" data-tab="beranda"><span class="ic">🏠</span>Beranda</button>
+  <button class="navitem" data-tab="anggaran"><span class="ic">💰</span>Anggaran</button>
+  <button class="navitem" data-tab="target"><span class="ic">🎯</span>Target</button>
+  <button class="navitem" data-tab="menu"><span class="ic">🍲</span>Menu</button>
+  <button class="navitem" data-tab="belanja"><span class="ic">🛒</span>Belanja</button>
+  <button class="navitem" data-tab="stok"><span class="ic">🧊</span>Stok</button>
+  <button class="navitem" data-tab="rutinitas"><span class="ic">🧹</span>Rutin</button>
+</nav>
+
+<!-- Transaction modal -->
+<div class="overlay" id="txOverlay">
+  <div class="modal">
+    <h3>📝 Tambah transaksi</h3>
+    <div class="form-row">
+      <label class="field">Jenis</label>
+      <select id="txType" onchange="onTxTypeChange()">
+        <option value="expense">Pengeluaran</option>
+        <option value="income">Pemasukan</option>
+      </select>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="field">Tanggal</label>
+        <input type="date" id="txDate">
+      </div>
+      <div class="form-row">
+        <label class="field">Nominal (Rp)</label>
+        <input type="number" id="txAmount" placeholder="cth. 50000">
+      </div>
+    </div>
+    <div class="form-row" id="txCategoryRow">
+      <label class="field">Pos anggaran</label>
+      <select id="txCategory"></select>
+    </div>
+    <div class="form-row">
+      <label class="field">Keterangan</label>
+      <input type="text" id="txDesc" placeholder="cth. Belanja mingguan">
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn ghost" style="flex:1;" onclick="closeModal('txOverlay')">Batal</button>
+      <button class="btn" style="flex:1;" onclick="submitTx()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Budget category modal -->
+<div class="overlay" id="budgetCatOverlay">
+  <div class="modal">
+    <h3 id="budgetCatModalTitle">📋 Tambah pos anggaran</h3>
+    <input type="hidden" id="bcatId">
+    <div class="form-row">
+      <label class="field">Nama pos</label>
+      <input type="text" id="bcatName" placeholder="cth. Belanja Dapur / Food Prep">
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="field">Alokasi budget / bulan (Rp)</label>
+        <input type="number" id="bcatBudget" placeholder="cth. 800000">
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="field">Catatan (opsional)</label>
+      <input type="text" id="bcatNote" placeholder="cth. Termasuk food prep mingguan">
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn ghost" style="flex:1;" onclick="closeModal('budgetCatOverlay')">Batal</button>
+      <button class="btn" style="flex:1;" onclick="submitBudgetCat()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal modal -->
+<div class="overlay" id="goalOverlay">
+  <div class="modal">
+    <h3 id="goalModalTitle">🎯 Tambah target tabungan</h3>
+    <input type="hidden" id="goalId">
+    <div class="form-row">
+      <label class="field">Nama target</label>
+      <input type="text" id="goalName" placeholder="cth. Tabungan Umroh">
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="field">Tahun rencana</label>
+        <input type="text" id="goalYear" placeholder="cth. 2027">
+      </div>
+      <div class="form-row">
+        <label class="field">Nominal per bulan (Rp)</label>
+        <input type="number" id="goalMonthly" placeholder="cth. 1000000">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="field">Jumlah bulan</label>
+        <input type="number" id="goalMonths" placeholder="cth. 12">
+      </div>
+      <div class="form-row">
+        <label class="field">Sudah terkumpul (Rp)</label>
+        <input type="number" id="goalSaved" placeholder="0">
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn ghost" style="flex:1;" onclick="closeModal('goalOverlay')">Batal</button>
+      <button class="btn gold" style="flex:1;" onclick="submitGoal()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Meal modal -->
+<div class="overlay" id="mealOverlay">
+  <div class="modal">
+    <h3 id="mealModalTitle">🍽️ Ubah menu</h3>
+    <input type="hidden" id="mealKey">
+    <div class="form-row">
+      <label class="field">Protein utama</label>
+      <input type="text" id="mealProtein" placeholder="cth. Ayam Kampung">
+    </div>
+    <div class="form-row">
+      <label class="field">Sayur / pendamping</label>
+      <input type="text" id="mealSayur" placeholder="cth. Sayur Asem">
+    </div>
+    <div class="form-row">
+      <label class="field">Keterangan</label>
+      <input type="text" id="mealNote" placeholder="cth. Masak 1 ekor utuh untuk 1x makan">
+    </div>
+    <div class="form-row">
+      <label class="field">Link resep</label>
+      <input type="text" id="mealLink" placeholder="https://...">
+      <div class="hint">Kosongkan agar otomatis dicarikan resepnya di Cookpad.</div>
+    </div>
+    <div class="form-row">
+      <label class="field">URL foto masakan (opsional)</label>
+      <input type="text" id="mealImg" placeholder="https://...jpg">
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn ghost" style="flex:1;" onclick="closeModal('mealOverlay')">Batal</button>
+      <button class="btn" style="flex:1;" onclick="submitMeal()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shopping modal -->
+<div class="overlay" id="shopOverlay">
+  <div class="modal">
+    <h3>🛒 Tambah item belanja</h3>
+    <div class="form-row">
+      <label class="field">Nama barang</label>
+      <input type="text" id="shopName" placeholder="cth. Ikan Patin 1kg">
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="field">Jumlah / catatan</label>
+        <input type="text" id="shopQty" placeholder="cth. 1kg">
+      </div>
+      <div class="form-row">
+        <label class="field">Kategori</label>
+        <select id="shopCat">
+          <option value="Protein">Protein</option>
+          <option value="Sayur">Sayur</option>
+          <option value="Bumbu">Bumbu</option>
+          <option value="Kebutuhan Rumah">Kebutuhan Rumah</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="field">Estimasi harga (Rp)</label>
+        <input type="number" id="shopPrice" placeholder="cth. 35000">
+      </div>
+      <div class="form-row">
+        <label class="field">Lokasi beli</label>
+        <select id="shopLoc">
+          <option value="Pasar">Pasar</option>
+          <option value="Supermarket">Supermarket</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn ghost" style="flex:1;" onclick="closeModal('shopOverlay')">Batal</button>
+      <button class="btn" style="flex:1;" onclick="submitShop()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory modal -->
+<div class="overlay" id="invOverlay">
+  <div class="modal">
+    <h3 id="invModalTitle">🧊 Tambah stok barang</h3>
+    <input type="hidden" id="invId">
+    <div class="form-row">
+      <label class="field">Nama bahan / barang</label>
+      <input type="text" id="invName" placeholder="cth. Ikan Patin">
+    </div>
+    <div class="form-row">
+      <label class="field">Jenis</label>
+      <select id="invJenis">
+        <option value="Bahan Makanan">🥫 Bahan Makanan</option>
+        <option value="Kulkas & Freezer">❄️ Kulkas &amp; Freezer</option>
+        <option value="Dapur">🍳 Dapur</option>
+        <option value="Housekeeping">🧹 Housekeeping</option>
+        <option value="Toiletries">🧴 Toiletries</option>
+      </select>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="field">Lokasi penyimpanan</label>
+        <input type="text" id="invLokasi" placeholder="cth. Freezer / Kulkas Bawah">
+      </div>
+      <div class="form-row">
+        <label class="field">Jumlah</label>
+        <input type="text" id="invJumlah" placeholder="cth. 2 ekor / 1 botol">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="field">Tanggal beli</label>
+        <input type="date" id="invTglBeli">
+      </div>
+      <div class="form-row">
+        <label class="field">Batas kesegaran / kadaluwarsa</label>
+        <input type="date" id="invTglBatas">
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="field">Status penggunaan</label>
+      <select id="invStatus">
+        <option value="Utuh">Utuh</option>
+        <option value="Terpakai Sebagian">Terpakai Sebagian</option>
+        <option value="Habis">Habis</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn ghost" style="flex:1;" onclick="closeModal('invOverlay')">Batal</button>
+      <button class="btn" style="flex:1;" onclick="submitInv()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chore modal -->
+<div class="overlay" id="choreOverlay">
+  <div class="modal">
+    <h3>🧹 Tambah kegiatan</h3>
+    <div class="form-row">
+      <label class="field">Nama kegiatan</label>
+      <input type="text" id="choreName" placeholder="cth. Bersihkan kulkas total">
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="field">Frekuensi</label>
+        <select id="choreFreq">
+          <option value="Harian">Harian</option>
+          <option value="Mingguan">Mingguan</option>
+          <option value="Bulanan">Bulanan</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="field">Penanggung jawab</label>
+        <select id="chorePic">
+          <option value="Istri">Istri</option>
+          <option value="Suami">Suami</option>
+          <option value="Bersama">Bersama</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn ghost" style="flex:1;" onclick="closeModal('choreOverlay')">Batal</button>
+      <button class="btn" style="flex:1;" onclick="submitChore()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= STATE ================= */
+const STORAGE_KEY = 'rkk_data_v2';
+const COLOR_PALETTE = ['#7E9772','#D9A566','#E8B4AE','#8CA9C4','#B79FCB','#C9A876','#6FA8A0','#D18C7A'];
+const DAYS = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const WEEKS = [1,2,3,4];
+const PROTEIN_LIST = ['Ayam Kampung','Bebek','Daging Sapi','Udang','Ikan Patin','Lele','Tongkol'];
+const SAYUR_LIST = ['Sayur Asem','Tumis Kangkung','Cah Brokoli','Capcay','Sayur Bening','Lalapan & Sambal','Sayur Lodeh'];
+const SHOP_CATS = ['Protein','Sayur','Bumbu','Kebutuhan Rumah'];
+const SHOP_CAT_COLOR = { 'Protein':'#E8B4AE','Sayur':'#7E9772','Bumbu':'#D9A566','Kebutuhan Rumah':'#8CA9C4' };
+const JENIS_LIST = ['Bahan Makanan','Kulkas & Freezer','Dapur','Housekeeping','Toiletries'];
+const JENIS_META = {
+  'Bahan Makanan':   { icon:'🥫', color:'#C9A876' },
+  'Kulkas & Freezer':{ icon:'❄️', color:'#8CA9C4' },
+  'Dapur':           { icon:'🍳', color:'#D9A566' },
+  'Housekeeping':    { icon:'🧹', color:'#E8B4AE' },
+  'Toiletries':      { icon:'🧴', color:'#B79FCB' },
+};
+
+function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+
+function defaultBudgetCategories(){
+  const items = [
+    ['Cicilan Emas', 2500000, 'Pos wajib'],
+    ['Bantuan Renovasi Rumah Ortu (Bapak)', 500000, 'Pos sosial/keluarga'],
+    ['Internet Ortu', 100000, 'Pos sosial/keluarga'],
+    ['Belanja Dapur / Food Prep', 800000, 'Pos kebutuhan'],
+    ['Listrik', 350000, 'Pos kebutuhan'],
+    ['Air', 100000, 'Pos kebutuhan'],
+    ['Uang Jajan Istri', 650000, 'Pos pribadi'],
+    ['Uang Jajan Suami', 500000, 'Pos pribadi'],
+    ['Skincare / Body Care', 300000, 'Pos pribadi'],
+    ['Investasi Saham / Reksadana (Bibit, Ajaib, Pluang)', 500000, 'Pos investasi/tabungan'],
+  ];
+  return items.map((it,i)=>({ id:uid(), name:it[0], budget:it[1], note:it[2], color:COLOR_PALETTE[i%COLOR_PALETTE.length] }));
+}
+
+function defaultMeals(){
+  const out = {};
+  let idx = 0;
+  WEEKS.forEach(w=>{
+    DAYS.forEach(d=>{
+      const protein = PROTEIN_LIST[idx % PROTEIN_LIST.length];
+      const sayur = SAYUR_LIST[idx % SAYUR_LIST.length];
+      const note = (w===1 && d==='Senin') ? 'Masak 1 ekor utuh untuk 1x makan' : '';
+      out[w+'|'+d] = { protein, sayur, note, link:'https://cookpad.com/id/cari/'+encodeURIComponent(protein), img:'' };
+      idx++;
+    });
+  });
+  return out;
+}
+
+function defaultGoals(){
+  return [
+    {id:uid(), year:'2026', name:'Cicil Emas', monthly:2500000, months:12, saved:0},
+    {id:uid(), year:'2026', name:'Dana Darurat (RDPU)', monthly:1000000, months:12, saved:0},
+    {id:uid(), year:'2026', name:'Pinjami Adek (Feb–Juni)', monthly:500000, months:6, saved:0},
+    {id:uid(), year:'2026', name:'Musholla (Saham)', monthly:500000, months:6, saved:0},
+    {id:uid(), year:'2027', name:'Cicil Emas (Jan–Sep)', monthly:2500000, months:9, saved:0},
+    {id:uid(), year:'2027', name:'Tabungan Cash (Okt–Des)', monthly:2500000, months:3, saved:0},
+    {id:uid(), year:'2027', name:'Dana Darurat (RDPU)', monthly:1000000, months:12, saved:0},
+    {id:uid(), year:'2027', name:'Tabungan Saham', monthly:500000, months:12, saved:0},
+    {id:uid(), year:'2028', name:'Tabungan Umroh', monthly:2500000, months:12, saved:0},
+    {id:uid(), year:'2028', name:'Dana Darurat (RDPU)', monthly:1000000, months:12, saved:0},
+    {id:uid(), year:'2028', name:'Tabungan Saham', monthly:500000, months:12, saved:0},
+    {id:uid(), year:'2029', name:'Tabungan Umroh', monthly:2500000, months:12, saved:0},
+    {id:uid(), year:'2029', name:'Dana Darurat (RDPU)', monthly:1000000, months:12, saved:0},
+    {id:uid(), year:'2029', name:'Tabungan Saham', monthly:500000, months:12, saved:0},
+  ];
+}
+
+function defaultShopping(){
+  return [
+    {id:uid(), name:'Ikan Patin 1kg', qty:'1kg', cat:'Protein', price:35000, loc:'Pasar', checked:false, boughtAt:null},
+    {id:uid(), name:'Bayam', qty:'2 ikat', cat:'Sayur', price:8000, loc:'Pasar', checked:false, boughtAt:null},
+    {id:uid(), name:'Sabun & sampo', qty:'', cat:'Kebutuhan Rumah', price:45000, loc:'Supermarket', checked:false, boughtAt:null},
+  ];
+}
+
+function defaultInventory(){
+  const today = new Date();
+  const iso = (d)=> d.toISOString().slice(0,10);
+  const plus = (days)=>{ const d=new Date(today); d.setDate(d.getDate()+days); return iso(d); };
+  return [
+    {id:uid(), name:'Beras 5kg', jenis:'Bahan Makanan', lokasi:'Pantry Bumbu', jumlah:'1 karung', tglBeli:iso(today), tglBatas:'', status:'Utuh'},
+    {id:uid(), name:'Bumbu Dapur Lengkap', jenis:'Bahan Makanan', lokasi:'Pantry Bumbu', jumlah:'1 set', tglBeli:iso(today), tglBatas:'', status:'Terpakai Sebagian'},
+    {id:uid(), name:'Ayam Kampung', jenis:'Kulkas & Freezer', lokasi:'Freezer', jumlah:'1 ekor', tglBeli:iso(today), tglBatas:plus(60), status:'Utuh'},
+    {id:uid(), name:'Bayam', jenis:'Kulkas & Freezer', lokasi:'Kulkas Bawah', jumlah:'2 ikat', tglBeli:iso(today), tglBatas:plus(5), status:'Utuh'},
+    {id:uid(), name:'Gas LPG 3kg', jenis:'Dapur', lokasi:'Dapur', jumlah:'1 tabung', tglBeli:iso(today), tglBatas:'', status:'Terpakai Sebagian'},
+    {id:uid(), name:'Sabun Cuci Piring', jenis:'Dapur', lokasi:'Dapur', jumlah:'1 botol', tglBeli:iso(today), tglBatas:'', status:'Terpakai Sebagian'},
+    {id:uid(), name:'Deterjen & Pewangi', jenis:'Housekeeping', lokasi:'Gudang', jumlah:'1 pouch', tglBeli:iso(today), tglBatas:'', status:'Utuh'},
+    {id:uid(), name:'Tisu & Pembersih Lantai', jenis:'Housekeeping', lokasi:'Gudang', jumlah:'2 pcs', tglBeli:iso(today), tglBatas:'', status:'Utuh'},
+    {id:uid(), name:'Shampoo Keluarga', jenis:'Toiletries', lokasi:'Kamar Mandi', jumlah:'1 botol', tglBeli:iso(today), tglBatas:'', status:'Utuh'},
+    {id:uid(), name:'Sabun Mandi & Pasta Gigi', jenis:'Toiletries', lokasi:'Kamar Mandi', jumlah:'2 pcs', tglBeli:iso(today), tglBatas:'', status:'Terpakai Sebagian'},
+  ];
+}
+
+function defaultChores(){
+  return [
+    {id:uid(), name:'Waktu berkualitas bersama suami', freq:'Harian', pic:'Bersama', status:'Belum Mulai'},
+    {id:uid(), name:'Food prep / masak pagi', freq:'Harian', pic:'Istri', status:'Belum Mulai'},
+    {id:uid(), name:'Olahraga badminton', freq:'Harian', pic:'Bersama', status:'Belum Mulai'},
+    {id:uid(), name:'Membaca buku', freq:'Harian', pic:'Istri', status:'Belum Mulai'},
+    {id:uid(), name:'Bersihkan kulkas total sebelum belanja baru', freq:'Mingguan', pic:'Istri', status:'Belum Mulai'},
+    {id:uid(), name:'Mencuci sprei', freq:'Mingguan', pic:'Bersama', status:'Belum Mulai'},
+    {id:uid(), name:'Me-time: melukis / merajut', freq:'Mingguan', pic:'Istri', status:'Belum Mulai'},
+    {id:uid(), name:'Membersihkan area luar rumah', freq:'Bulanan', pic:'Bersama', status:'Belum Mulai'},
+    {id:uid(), name:'Mengecek kondisi atap / dinding', freq:'Bulanan', pic:'Suami', status:'Belum Mulai'},
+  ];
+}
+
+function defaultState(){
+  return {
+    gaji: 4000000,
+    budgetCategories: defaultBudgetCategories(),
+    transactions: [],
+    goals: defaultGoals(),
+    meals: defaultMeals(),
+    shopping: defaultShopping(),
+    inventory: defaultInventory(),
+    chores: defaultChores(),
+  };
+}
+
+let state = defaultState(); // diisi ulang saat login / lanjut tanpa akun
+
+/* ================= GOOGLE LOGIN & GOOGLE DRIVE SYNC =================
+   Setiap akun Google menyimpan datanya sendiri di folder privat "appDataFolder"
+   pada Google Drive miliknya masing-masing (tidak terlihat/tercampur dengan
+   akun lain). Untuk mengaktifkan fitur ini, ganti GOOGLE_CLIENT_ID di bawah
+   dengan Client ID OAuth milikmu sendiri (lihat README-INSTALL.md). */
+const GOOGLE_CLIENT_ID = 'GANTI_DENGAN_CLIENT_ID_ANDA.apps.googleusercontent.com';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const DRIVE_FILE_NAME = 'rumah-tangga-data.json';
+
+let currentUser = null;   // {email, name, picture}
+let accessToken = null;
+let driveFileId = null;
+let tokenClient = null;
+let syncTimer = null;
+
+function initGoogleAuth(){
+  if(!window.google || !google.accounts || !google.accounts.oauth2) return;
+  if(GOOGLE_CLIENT_ID.startsWith('GANTI_DENGAN')){
+    document.getElementById('loginStatus').innerHTML = '⚠️ Client ID Google belum diatur oleh pemilik app.<br>Lihat README-INSTALL.md untuk cara mengaturnya.';
+    return;
+  }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: DRIVE_SCOPE + ' openid email profile',
+    callback: async (resp)=>{
+      if(resp.error){ showLoginStatus('Login dibatalkan atau gagal.'); return; }
+      accessToken = resp.access_token;
+      await afterLogin();
+    }
+  });
+}
+function showLoginStatus(msg){ const el=document.getElementById('loginStatus'); if(el) el.textContent = msg; }
+function handleGoogleLogin(){
+  if(!tokenClient){ showLoginStatus('Google belum siap, tunggu sebentar lalu coba lagi.'); return; }
+  showLoginStatus('Membuka jendela login Google...');
+  tokenClient.requestAccessToken({prompt:'consent'});
+}
+async function afterLogin(){
+  try{
+    showLoginStatus('Menghubungkan ke akun Google...');
+    const profile = await fetchGoogleProfile();
+    currentUser = { email: profile.email, name: profile.name || profile.email, picture: profile.picture || '' };
+    showLoginStatus('Memuat data dari Google Drive...');
+    await loadOrCreateDriveFile();
+    enterApp();
+  }catch(err){
+    console.warn(err);
+    showLoginStatus('Gagal menghubungkan ke Google Drive. Coba lagi.');
+  }
+}
+async function fetchGoogleProfile(){
+  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers:{ Authorization:'Bearer '+accessToken } });
+  if(!res.ok) throw new Error('Gagal mengambil profil Google');
+  return res.json();
+}
+async function loadOrCreateDriveFile(){
+  const q = encodeURIComponent(`name='${DRIVE_FILE_NAME}'`);
+  const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}&fields=files(id,name)`, {
+    headers:{ Authorization:'Bearer '+accessToken }
+  });
+  const listData = await listRes.json();
+  if(listData.files && listData.files.length){
+    driveFileId = listData.files[0].id;
+    const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
+      headers:{ Authorization:'Bearer '+accessToken }
+    });
+    const content = await fileRes.json();
+    state = Object.assign(defaultState(), content);
+  }else{
+    state = defaultState();
+    await createDriveFile();
+  }
+  cacheLocally();
+}
+async function createDriveFile(){
+  const metadata = { name: DRIVE_FILE_NAME, parents:['appDataFolder'] };
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
+  form.append('file', new Blob([JSON.stringify(state)], {type:'application/json'}));
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+    method:'POST', headers:{ Authorization:'Bearer '+accessToken }, body: form
+  });
+  const data = await res.json();
+  driveFileId = data.id;
+}
+async function syncToDrive(){
+  if(!accessToken || !driveFileId) return;
+  try{
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+      method:'PATCH',
+      headers:{ Authorization:'Bearer '+accessToken, 'Content-Type':'application/json' },
+      body: JSON.stringify(state)
+    });
+  }catch(e){ console.warn('Gagal sinkron ke Google Drive', e); }
+}
+function scheduleDriveSync(){
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncToDrive, 1500);
+}
+function continueOffline(){
+  currentUser = null; accessToken = null; driveFileId = null;
+  const raw = localStorage.getItem(STORAGE_KEY+'_guest');
+  try{ state = raw ? Object.assign(defaultState(), JSON.parse(raw)) : defaultState(); }
+  catch(e){ state = defaultState(); }
+  enterApp();
+}
+function logout(){
+  if(accessToken && window.google && google.accounts){
+    google.accounts.oauth2.revoke(accessToken, ()=>{});
+  }
+  accessToken = null; driveFileId = null; currentUser = null;
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  showLoginStatus('');
+}
+function enterApp(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'flex';
+  renderAll();
+  renderAccountBadges();
+}
+function accountKey(){ return currentUser ? (STORAGE_KEY+'_'+currentUser.email) : (STORAGE_KEY+'_guest'); }
+function cacheLocally(){
+  try{ localStorage.setItem(accountKey(), JSON.stringify(state)); }
+  catch(e){ console.warn('Penyimpanan lokal tidak tersedia.', e); }
+}
+function renderAccountBadges(){
+  const mk = (compact)=>{
+    if(!currentUser){
+      return `<div class="user-badge">
+        <span class="hint" style="margin:0;">Mode tanpa akun</span>
+        <button class="btn ghost sm" onclick="logout()">Masuk</button>
+      </div>`;
+    }
+    const avatar = currentUser.picture
+      ? `<img src="${currentUser.picture}" alt="${escapeHtml(currentUser.name)}">`
+      : `<div class="avatar-fallback">${escapeHtml((currentUser.name||'?').charAt(0).toUpperCase())}</div>`;
+    return `<div class="user-badge">
+      ${avatar}
+      ${compact ? '' : `<span class="uname">${escapeHtml(currentUser.name)}</span>`}
+      <button class="iconbtn" title="Keluar" onclick="logout()">🚪</button>
+    </div>`;
+  };
+  document.getElementById('topbarAccount').innerHTML = mk(true);
+  document.getElementById('sidebarAccount').innerHTML = mk(false);
+}
+
+function save(){
+  cacheLocally();
+  if(currentUser) scheduleDriveSync();
+}
+
+/* ================= HELPERS ================= */
+function fmtRp(n){ n = Math.round(Number(n)||0); return 'Rp' + n.toLocaleString('id-ID'); }
+function monthKey(d){ return d.slice(0,7); }
+function thisMonthKey(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function todayIso(){ return new Date().toISOString().slice(0,10); }
+function daysBetween(iso){ if(!iso) return null; const a=new Date(todayIso()+'T00:00:00'); const b=new Date(iso+'T00:00:00'); return Math.round((b-a)/86400000); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function formatDateId(dstr){ if(!dstr) return ''; const d = new Date(dstr+'T00:00:00'); return d.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}); }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ================= NAV ================= */
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.navitem').forEach(el=>{ el.classList.toggle('active', el.dataset.tab===tab); });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.querySelectorAll('.navitem').forEach(btn=>{ btn.addEventListener('click', ()=>switchTab(btn.dataset.tab)); });
+
+/* ================= MODALS ================= */
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.overlay').forEach(ov=>{ ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('show'); }); });
+
+/* ================= BUDGET CATEGORIES (Anggaran) ================= */
+function catById(id){ return state.budgetCategories.find(c=>c.id===id); }
+function computeMonthTotals(mkey){
+  let income=0, expense=0;
+  const byCat = {};
+  state.budgetCategories.forEach(c=> byCat[c.id]=0);
+  state.transactions.forEach(t=>{
+    if(monthKey(t.date)!==mkey) return;
+    if(t.type==='income') income += Number(t.amount);
+    else{
+      expense += Number(t.amount);
+      if(t.categoryId && byCat[t.categoryId]!==undefined) byCat[t.categoryId]+=Number(t.amount);
+    }
+  });
+  return {income, expense, byCat};
+}
+
+function budgetRowHtml(c, spent, forOverview){
+  const diff = c.budget - spent;
+  const ratio = c.budget>0 ? Math.min(spent/c.budget,1)*100 : 0;
+  const over = spent > c.budget;
+  return `<div class="budget-row">
+    ${forOverview ? '' : `<div class="budget-actions" style="position:absolute; top:12px; right:12px;">
+      <button class="iconbtn" onclick="editBudgetCat('${c.id}')">✎</button>
+      <button class="iconbtn" onclick="deleteBudgetCat('${c.id}')">✕</button>
+    </div>`}
+    <div class="budget-top">
+      <div>
+        <div class="budget-name" style="color:${c.color}">${escapeHtml(c.name)}</div>
+        ${c.note ? `<div class="budget-note">${escapeHtml(c.note)}</div>` : ''}
+      </div>
+      <div class="budget-nums">
+        ${fmtRp(spent)} / ${fmtRp(c.budget)}<br>
+        <span class="budget-diff ${diff>=0?'pos':'neg'}">${diff>=0?'Sisa ':'Lebih '}${fmtRp(Math.abs(diff))}</span>
+      </div>
+    </div>
+    <div class="bar-bg"><div class="bar-fg ${over?'over':''}" style="width:${ratio}%; background:${over?'':c.color}"></div></div>
+  </div>`;
+}
+
+function renderBudgetOverview(){
+  const mkey = thisMonthKey();
+  const {byCat} = computeMonthTotals(mkey);
+  const wrap = document.getElementById('budgetOverview');
+  if(state.budgetCategories.length===0){ wrap.innerHTML = '<div class="empty">Belum ada pos anggaran. Tambahkan di tab Anggaran.</div>'; return; }
+  let totalBudget=0, totalSpent=0;
+  const rows = state.budgetCategories.map(c=>{
+    const spent = byCat[c.id]||0;
+    totalBudget += Number(c.budget); totalSpent += spent;
+    return budgetRowHtml(c, spent, true);
+  }).join('');
+  wrap.innerHTML = rows + `<div class="tsum-row"><span>Total</span><span>${fmtRp(totalSpent)} / ${fmtRp(totalBudget)}</span></div>`;
+}
+
+function renderBudgetCats(){
+  const mkey = thisMonthKey();
+  const {byCat} = computeMonthTotals(mkey);
+  const wrap = document.getElementById('budgetCatsWrap');
+  if(state.budgetCategories.length===0){ wrap.innerHTML = '<div class="empty">Belum ada pos anggaran.</div>'; return; }
+  wrap.innerHTML = state.budgetCategories.map(c=> budgetRowHtml(c, byCat[c.id]||0, false)).join('');
+}
+function openBudgetCatModal(){
+  document.getElementById('budgetCatModalTitle').textContent = '📋 Tambah pos anggaran';
+  document.getElementById('bcatId').value='';
+  document.getElementById('bcatName').value='';
+  document.getElementById('bcatBudget').value='';
+  document.getElementById('bcatNote').value='';
+  openModal('budgetCatOverlay');
+}
+function editBudgetCat(id){
+  const c = catById(id); if(!c) return;
+  document.getElementById('budgetCatModalTitle').textContent = '✎ Ubah pos anggaran';
+  document.getElementById('bcatId').value=c.id;
+  document.getElementById('bcatName').value=c.name;
+  document.getElementById('bcatBudget').value=c.budget;
+  document.getElementById('bcatNote').value=c.note||'';
+  openModal('budgetCatOverlay');
+}
+function submitBudgetCat(){
+  const id = document.getElementById('bcatId').value;
+  const name = document.getElementById('bcatName').value.trim();
+  const budget = Number(document.getElementById('bcatBudget').value)||0;
+  const note = document.getElementById('bcatNote').value.trim();
+  if(!name){ showToast('Isi nama pos dulu ya'); return; }
+  if(id){
+    const c = catById(id);
+    Object.assign(c, {name, budget, note});
+  }else{
+    state.budgetCategories.push({id:uid(), name, budget, note, color:COLOR_PALETTE[state.budgetCategories.length%COLOR_PALETTE.length]});
+  }
+  save(); closeModal('budgetCatOverlay'); renderAll();
+  showToast('Pos anggaran tersimpan ✨');
+}
+function deleteBudgetCat(id){
+  state.budgetCategories = state.budgetCategories.filter(c=>c.id!==id);
+  state.transactions.forEach(t=>{ if(t.categoryId===id) t.categoryId=null; });
+  save(); renderAll();
+}
+function saveGaji(){ state.gaji = Number(document.getElementById('inputGaji').value)||state.gaji; save(); renderDashboard(); }
+
+/* ================= TRANSAKSI ================= */
+function txRowHtml(t){
+  const cat = t.categoryId ? catById(t.categoryId) : null;
+  const sign = t.type==='income' ? '+' : '−';
+  const cls = t.type==='income' ? 'pos' : 'neg';
+  const badgeColor = t.type==='income' ? '#7E9772' : (cat ? cat.color : '#B9AFB4');
+  const badgeLabel = t.type==='income' ? 'Masuk' : (cat ? cat.name : 'Lainnya');
+  return `<div class="trow">
+    <div class="left">
+      <span class="badge" style="background:${badgeColor}">${escapeHtml(badgeLabel)}</span>
+      <div class="meta">
+        <div class="desc">${escapeHtml(t.desc||'(tanpa keterangan)')}</div>
+        <div class="date">${formatDateId(t.date)}</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:6px;">
+      <div class="amt ${cls}">${sign}${fmtRp(t.amount)}</div>
+      <button class="iconbtn" onclick="deleteTx('${t.id}')">✕</button>
+    </div>
+  </div>`;
+}
+function populateCategorySelects(){
+  const filterSel = document.getElementById('filterCategory');
+  const txSel = document.getElementById('txCategory');
+  const opts = state.budgetCategories.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  txSel.innerHTML = opts;
+  filterSel.innerHTML = '<option value="all">Semua pos</option>' + opts;
+}
+function onTxTypeChange(){
+  const isIncome = document.getElementById('txType').value==='income';
+  document.getElementById('txCategoryRow').style.display = isIncome ? 'none' : 'block';
+}
+function renderTransactions(){
+  const filter = document.getElementById('filterCategory').value;
+  const filtered = state.transactions
+    .filter(t => filter === 'all' || t.categoryId === filter)
+    .sort((a,b) => b.date.localeCompare(a.date));
+  const el = document.getElementById('txList');
+  el.innerHTML = filtered.length ? filtered.map(txRowHtml).join('') :
+    '<div class="empty"><span class="emoji">🧺</span>Belum ada catatan untuk pos ini.</div>';
+}
+function deleteTx(id){ state.transactions = state.transactions.filter(t=>t.id!==id); save(); renderAll(); }
+function openTxModal(){
+  document.getElementById('txType').value='expense';
+  onTxTypeChange();
+  document.getElementById('txDate').value = todayIso();
+  document.getElementById('txAmount').value='';
+  document.getElementById('txDesc').value='';
+  openModal('txOverlay');
+}
+function submitTx(){
+  const type = document.getElementById('txType').value;
+  const date = document.getElementById('txDate').value || todayIso();
+  const amount = Number(document.getElementById('txAmount').value);
+  const categoryId = type==='income' ? null : document.getElementById('txCategory').value;
+  const desc = document.getElementById('txDesc').value;
+  if(!amount){ showToast('Isi nominal dulu ya'); return; }
+  state.transactions.push({id:uid(), type, date, amount, categoryId, desc});
+  save(); closeModal('txOverlay'); renderAll();
+  showToast('Transaksi tersimpan 🌿');
+}
+
+/* ================= DASHBOARD ================= */
+function renderDashboard(){
+  const mkey = thisMonthKey();
+  const {income, expense} = computeMonthTotals(mkey);
+  document.getElementById('statIncome').textContent = fmtRp(income || state.gaji);
+  document.getElementById('statExpense').textContent = fmtRp(expense);
+  document.getElementById('statBalance').textContent = fmtRp((income||state.gaji) - expense);
+
+  renderBudgetOverview();
+
+  const nearest = [...state.goals].sort((a,b)=> (a.year+a.name).localeCompare(b.year+b.name)).slice(0,3);
+  const ng = document.getElementById('nearestGoals');
+  ng.innerHTML = nearest.length ? nearest.map(g=>{
+    const target = g.monthly*g.months;
+    const ratio = target>0 ? Math.min(g.saved/target,1)*100 : 0;
+    return `<div style="margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:5px;">
+        <span>${escapeHtml(g.name)} · ${g.year}</span><span>${ratio.toFixed(0)}%</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fg" style="width:${ratio}%;"></div></div>
+    </div>`;
+  }).join('') : '<div class="empty">Belum ada target tabungan.</div>';
+
+  const alerts = state.inventory.filter(it=>{
+    const d = daysBetween(it.tglBatas);
+    return (d!==null && d<=3) || it.status==='Habis';
+  }).slice(0,5);
+  const sa = document.getElementById('stokAlerts');
+  sa.innerHTML = alerts.length ? alerts.map(it=>{
+    const d = daysBetween(it.tglBatas);
+    let msg = it.status==='Habis' ? 'Stok habis' : (d<0 ? 'Sudah lewat batas' : d===0 ? 'Batas hari ini' : `Sisa ${d} hari`);
+    return `<div class="inv-row"><div class="inv-top">
+      <div><div class="inv-name">${escapeHtml(it.name)}</div><div class="inv-meta">${escapeHtml(it.lokasi||'-')}</div></div>
+      <span class="inv-badge" style="background:var(--blush); color:#7a2f28;">${msg}</span>
+    </div></div>`;
+  }).join('') : '<div class="empty">Aman, tidak ada stok yang mendesak 🌿</div>';
+
+  const recent = [...state.transactions].sort((a,b)=> b.date.localeCompare(a.date)).slice(0,5);
+  const rc = document.getElementById('recentTx');
+  rc.innerHTML = recent.length ? recent.map(txRowHtml).join('') :
+    '<div class="empty"><span class="emoji">🌱</span>Belum ada transaksi. Yuk catat pemasukan/pengeluaran pertamamu di tab Anggaran.</div>';
+}
+
+/* ================= TARGET TABUNGAN ================= */
+function renderGoals(){
+  const wrap = document.getElementById('goalsWrap');
+  const years = [...new Set(state.goals.map(g=>g.year))].sort();
+  if(years.length===0){ wrap.innerHTML = '<div class="card empty">Belum ada target. Tambahkan target tabungan pertamamu!</div>'; return; }
+  wrap.innerHTML = years.map(y=>{
+    const goals = state.goals.filter(g=>g.year===y);
+    return `<div class="goal-year">
+      <h4>Rencana ${y}</h4>
+      ${goals.map(g=>{
+        const target = g.monthly*g.months;
+        const ratio = target>0 ? Math.min(g.saved/target,1)*100 : 0;
+        return `<div class="goal-card">
+          <div class="goal-actions">
+            <button class="iconbtn" onclick="editGoal('${g.id}')">✎</button>
+            <button class="iconbtn" onclick="deleteGoal('${g.id}')">✕</button>
+          </div>
+          <div class="goal-top">
+            <div>
+              <div class="goal-name">${escapeHtml(g.name)}</div>
+              <div class="goal-target">${fmtRp(g.monthly)}/bln × ${g.months} bln = ${fmtRp(target)}</div>
+            </div>
+          </div>
+          <div class="bar-bg"><div class="bar-fg" style="width:${ratio}%;"></div></div>
+          <div class="goal-bottom">
+            <span>Terkumpul ${fmtRp(g.saved)}</span>
+            <span>${ratio.toFixed(0)}%</span>
+          </div>
+          <div style="margin-top:9px; display:flex; gap:6px;">
+            <button class="btn ghost sm" onclick="bumpGoal('${g.id}', ${g.monthly})">+ Setor ${fmtRp(g.monthly)}</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+function bumpGoal(id, amount){
+  const g = state.goals.find(x=>x.id===id);
+  if(!g) return;
+  g.saved = Number(g.saved) + Number(amount);
+  let tabCat = state.budgetCategories.find(c=> /tabungan|investasi|emas/i.test(c.name));
+  state.transactions.push({
+    id: uid(), type:'expense', date: todayIso(), amount:amount,
+    categoryId: tabCat ? tabCat.id : null,
+    desc: `Setor tabungan: ${g.name}`
+  });
+  save(); renderAll();
+  showToast('Setoran dicatat dan memotong saldo bulanan! 🎉');
+}
+function openGoalModal(){
+  document.getElementById('goalModalTitle').textContent='🎯 Tambah target tabungan';
+  document.getElementById('goalId').value='';
+  document.getElementById('goalName').value='';
+  document.getElementById('goalYear').value=new Date().getFullYear();
+  document.getElementById('goalMonthly').value='';
+  document.getElementById('goalMonths').value='12';
+  document.getElementById('goalSaved').value='0';
+  openModal('goalOverlay');
+}
+function editGoal(id){
+  const g = state.goals.find(x=>x.id===id); if(!g) return;
+  document.getElementById('goalModalTitle').textContent='✎ Ubah target tabungan';
+  document.getElementById('goalId').value=g.id;
+  document.getElementById('goalName').value=g.name;
+  document.getElementById('goalYear').value=g.year;
+  document.getElementById('goalMonthly').value=g.monthly;
+  document.getElementById('goalMonths').value=g.months;
+  document.getElementById('goalSaved').value=g.saved;
+  openModal('goalOverlay');
+}
+function submitGoal(){
+  const id = document.getElementById('goalId').value;
+  const name = document.getElementById('goalName').value.trim();
+  const year = document.getElementById('goalYear').value.trim() || String(new Date().getFullYear());
+  const monthly = Number(document.getElementById('goalMonthly').value)||0;
+  const months = Number(document.getElementById('goalMonths').value)||1;
+  const saved = Number(document.getElementById('goalSaved').value)||0;
+  if(!name){ showToast('Isi nama target dulu ya'); return; }
+  if(id){ Object.assign(state.goals.find(x=>x.id===id), {name, year, monthly, months, saved}); }
+  else{ state.goals.push({id:uid(), name, year, monthly, months, saved}); }
+  save(); closeModal('goalOverlay'); renderGoals(); renderDashboard();
+  showToast('Target tersimpan 🌟');
+}
+function deleteGoal(id){ state.goals = state.goals.filter(g=>g.id!==id); save(); renderGoals(); renderDashboard(); }
+
+/* ================= MENU MASAKAN ================= */
+let currentWeek = 1;
+function renderWeekChips(){
+  const wrap = document.getElementById('weekChips');
+  wrap.innerHTML = WEEKS.map(w=>`<div class="chip ${currentWeek===w?'active':''}" onclick="setWeek(${w})">Minggu ${w}</div>`).join('');
+}
+function setWeek(w){ currentWeek = w; renderMeals(); }
+function renderProteinTracker(){
+  const wrap = document.getElementById('proteinTracker');
+  const values = DAYS.map(d=> (state.meals[currentWeek+'|'+d]||{}).protein || '').map(v=>v.toLowerCase());
+  wrap.innerHTML = PROTEIN_LIST.map(p=>{
+    const count = values.filter(v=>v.includes(p.toLowerCase())).length;
+    return `<div class="protein-pill ${count===0?'zero':''}">${p} ${count>0? '· '+count+'x' : '· belum dipakai'}</div>`;
+  }).join('');
+}
+function renderMeals(){
+  renderWeekChips();
+  renderProteinTracker();
+  const wrap = document.getElementById('weekWrap');
+  wrap.innerHTML = DAYS.map(day=>{
+    const key = currentWeek+'|'+day;
+    const m = state.meals[key] || {protein:'', sayur:'', note:'', link:'', img:''};
+    return `<div class="day-card">
+      <button class="iconbtn meal-edit-btn" onclick="editMeal('${key}')">✎</button>
+      <div class="day-title">📅 ${day}</div>
+      <div class="meal-slot">
+        <div class="mtype">🍗 Menu Utama</div>
+        ${m.img ? `<img class="meal-thumb" src="${escapeHtml(m.img)}" alt="${escapeHtml(m.protein)}" onerror="this.style.display='none'">` : ''}
+        <div class="dish">${m.protein ? escapeHtml(m.protein) : '<span style=\"color:var(--plum-soft); font-weight:500;\">Belum diisi</span>'}</div>
+        ${m.link ? `<a class="recipe-link" href="${escapeHtml(m.link)}" target="_blank" rel="noopener">📖 Lihat resep</a>` : ''}
+      </div>
+      <div class="meal-slot">
+        <div class="mtype">🥬 Sayur / Pendamping</div>
+        <div class="dish">${m.sayur ? escapeHtml(m.sayur) : '<span style=\"color:var(--plum-soft); font-weight:500;\">Belum diisi</span>'}</div>
+      </div>
+      ${m.note ? `<div class="meal-note">📝 ${escapeHtml(m.note)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+function editMeal(key){
+  const m = state.meals[key] || {protein:'', sayur:'', note:'', link:'', img:''};
+  const [w, day] = key.split('|');
+  document.getElementById('mealModalTitle').textContent = `🍽️ Minggu ${w} · ${day}`;
+  document.getElementById('mealKey').value = key;
+  document.getElementById('mealProtein').value = m.protein;
+  document.getElementById('mealSayur').value = m.sayur;
+  document.getElementById('mealNote').value = m.note;
+  document.getElementById('mealLink').value = m.link;
+  document.getElementById('mealImg').value = m.img;
+  openModal('mealOverlay');
+}
+function submitMeal(){
+  const key = document.getElementById('mealKey').value;
+  const protein = document.getElementById('mealProtein').value.trim();
+  const sayur = document.getElementById('mealSayur').value.trim();
+  const note = document.getElementById('mealNote').value.trim();
+  let link = document.getElementById('mealLink').value.trim();
+  const img = document.getElementById('mealImg').value.trim();
+  if(!link && protein){ link = 'https://cookpad.com/id/cari/'+encodeURIComponent(protein); }
+  state.meals[key] = {protein, sayur, note, link, img};
+  save(); closeModal('mealOverlay'); renderMeals();
+  showToast('Menu tersimpan 🍽️');
+}
+
+/* ================= BELANJA ================= */
+let shopFilter = 'all';
+let showShopHistory = false;
+function renderShopFilterChips(){
+  const wrap = document.getElementById('shopFilterChips');
+  const cats = ['all', ...SHOP_CATS];
+  wrap.innerHTML = cats.map(c=>`<div class="chip ${shopFilter===c?'active':''}" onclick="setShopFilter('${c}')">${c==='all'?'Semua':c}</div>`).join('');
+}
+function setShopFilter(c){ shopFilter = c; renderShopping(); }
+function renderShopping(){
+  renderShopFilterChips();
+  const el = document.getElementById('shopList');
+  const active = state.shopping.filter(s=>!s.checked && (shopFilter==='all' || s.cat===shopFilter));
+  el.innerHTML = active.length ? active.map(shopRowHtml).join('') : '<div class="empty">Tidak ada item yang perlu dibeli 🎉</div>';
+  const total = active.reduce((sum,s)=> sum + (Number(s.price)||0), 0);
+  document.getElementById('shopTotal').textContent = fmtRp(total);
+  renderShopHistory();
+}
+function shopRowHtml(s){
+  const color = SHOP_CAT_COLOR[s.cat] || '#B9AFB4';
+  return `<div class="shop-item ${s.checked?'checked':''}">
+    <div class="checkbox ${s.checked?'on':''}" onclick="toggleShop('${s.id}')">${s.checked?'✓':''}</div>
+    <div style="flex:1; min-width:110px;">
+      <div class="sname">${escapeHtml(s.name)}</div>
+      <div class="sqty">${escapeHtml(s.qty||'')} ${s.loc? '· '+s.loc : ''}</div>
+    </div>
+    <span class="shop-cat-badge" style="background:${color}33; color:${color};">${s.cat}</span>
+    ${s.price ? `<span class="shop-price">${fmtRp(s.price)}</span>` : ''}
+    <button class="iconbtn" onclick="deleteShop('${s.id}')">✕</button>
+  </div>`;
+}
+function toggleShopHistory(){
+  showShopHistory = !showShopHistory;
+  document.getElementById('shopHistoryWrap').style.display = showShopHistory ? 'block' : 'none';
+  document.getElementById('historyToggleLabel').textContent = showShopHistory ? 'Sembunyikan riwayat pembelian' : 'Tampilkan riwayat pembelian';
+  renderShopHistory();
+}
+function renderShopHistory(){
+  if(!showShopHistory) return;
+  const bought = state.shopping.filter(s=>s.checked).sort((a,b)=> (b.boughtAt||'').localeCompare(a.boughtAt||''));
+  const wrap = document.getElementById('shopHistoryWrap');
+  if(bought.length===0){ wrap.innerHTML = '<div class="empty">Belum ada riwayat pembelian.</div>'; return; }
+  wrap.innerHTML = bought.map(s=>`
+    <div class="shop-item checked">
+      <div class="checkbox on" onclick="toggleShop('${s.id}')">✓</div>
+      <div style="flex:1; min-width:110px;">
+        <div class="sname">${escapeHtml(s.name)}</div>
+        <div class="sqty">${s.boughtAt ? 'Dibeli '+formatDateId(s.boughtAt) : ''}</div>
+      </div>
+      ${s.price ? `<span class="shop-price">${fmtRp(s.price)}</span>` : ''}
+      <button class="iconbtn" onclick="deleteShop('${s.id}')">✕</button>
+    </div>
+  `).join('') + `<button class="btn ghost sm" style="margin-top:8px;" onclick="clearShopHistory()">Kosongkan riwayat</button>`;
+}
+function clearShopHistory(){
+  state.shopping = state.shopping.filter(s=>!s.checked);
+  save(); renderShopping();
+}
+function toggleShop(id){
+  const s = state.shopping.find(x=>x.id===id); if(!s) return;
+  s.checked = !s.checked;
+  s.boughtAt = s.checked ? todayIso() : null;
+  save(); renderShopping();
+}
+function deleteShop(id){ state.shopping = state.shopping.filter(s=>s.id!==id); save(); renderShopping(); }
+function openShopModal(){
+  document.getElementById('shopName').value='';
+  document.getElementById('shopQty').value='';
+  document.getElementById('shopPrice').value='';
+  openModal('shopOverlay');
+}
+function submitShop(){
+  const name = document.getElementById('shopName').value.trim();
+  const qty = document.getElementById('shopQty').value.trim();
+  const cat = document.getElementById('shopCat').value;
+  const price = Number(document.getElementById('shopPrice').value)||0;
+  const loc = document.getElementById('shopLoc').value;
+  if(!name){ showToast('Isi nama barang dulu ya'); return; }
+  state.shopping.push({id:uid(), name, qty, cat, price, loc, checked:false, boughtAt:null});
+  save(); closeModal('shopOverlay'); renderShopping();
+  showToast('Item ditambahkan ke daftar 🛒');
+}
+
+/* ================= STOK BARANG ================= */
+let invFilter = 'all';
+function renderInvFilterChips(){
+  const wrap = document.getElementById('invFilterChips');
+  const cats = ['all', ...JENIS_LIST];
+  wrap.innerHTML = cats.map(c=>`<div class="chip ${invFilter===c?'active':''}" onclick="setInvFilter('${c}')">${c==='all'?'Semua':(JENIS_META[c].icon+' '+c)}</div>`).join('');
+}
+function setInvFilter(c){ invFilter = c; renderInventory(); }
+function invExpiryBadge(it){
+  const d = daysBetween(it.tglBatas);
+  if(it.status==='Habis') return `<span class="inv-badge" style="background:var(--blush); color:#7a2f28;">Habis</span>`;
+  if(d===null) return `<span class="inv-badge" style="background:var(--sage-light); color:var(--sage-dark);">${it.status}</span>`;
+  if(d<=2) return `<span class="inv-badge" style="background:var(--blush); color:#7a2f28;">${d<0?'Lewat batas':'Segera habis ('+d+'h)'}</span>`;
+  if(d<=7) return `<span class="inv-badge" style="background:var(--gold-light); color:#8a622b;">Perhatikan (${d}h)</span>`;
+  return `<span class="inv-badge" style="background:var(--sage-light); color:var(--sage-dark);">${it.status}</span>`;
+}
+function renderInventory(){
+  renderInvFilterChips();
+  const wrap = document.getElementById('invWrap');
+  let items = state.inventory.filter(it=> invFilter==='all' || it.jenis===invFilter);
+  items = [...items].sort((a,b)=>{
+    const da = daysBetween(a.tglBatas); const db = daysBetween(b.tglBatas);
+    if(da===null && db===null) return 0;
+    if(da===null) return 1; if(db===null) return -1;
+    return da-db;
+  });
+  if(items.length===0){ wrap.innerHTML = '<div class="empty">Belum ada stok tercatat.</div>'; return; }
+  wrap.innerHTML = items.map(it=>{
+    const jm = JENIS_META[it.jenis] || {icon:'📦', color:'#B9AFB4'};
+    return `
+    <div class="inv-row">
+      <div class="inv-top">
+        <div>
+          <div class="inv-name">${escapeHtml(it.name)}</div>
+          <div class="inv-meta">
+            <span class="inv-badge" style="background:${jm.color}33; color:${jm.color};">${jm.icon} ${it.jenis}</span>
+            <br>${escapeHtml(it.lokasi||'-')} · ${escapeHtml(it.jumlah||'-')}
+            ${it.tglBatas ? '<br>Batas: '+formatDateId(it.tglBatas) : ''}</div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+          ${invExpiryBadge(it)}
+          <div style="display:flex; gap:2px;">
+            <button class="iconbtn" onclick="editInv('${it.id}')">✎</button>
+            <button class="iconbtn" onclick="deleteInv('${it.id}')">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+function openInvModal(){
+  document.getElementById('invModalTitle').textContent = '🧊 Tambah stok barang';
+  document.getElementById('invId').value='';
+  document.getElementById('invName').value='';
+  document.getElementById('invJenis').value='Bahan Makanan';
+  document.getElementById('invLokasi').value='';
+  document.getElementById('invJumlah').value='';
+  document.getElementById('invTglBeli').value=todayIso();
+  document.getElementById('invTglBatas').value='';
+  document.getElementById('invStatus').value='Utuh';
+  openModal('invOverlay');
+}
+function editInv(id){
+  const it = state.inventory.find(x=>x.id===id); if(!it) return;
+  document.getElementById('invModalTitle').textContent = '✎ Ubah stok barang';
+  document.getElementById('invId').value=it.id;
+  document.getElementById('invName').value=it.name;
+  document.getElementById('invJenis').value=it.jenis;
+  document.getElementById('invLokasi').value=it.lokasi;
+  document.getElementById('invJumlah').value=it.jumlah;
+  document.getElementById('invTglBeli').value=it.tglBeli||'';
+  document.getElementById('invTglBatas').value=it.tglBatas||'';
+  document.getElementById('invStatus').value=it.status;
+  openModal('invOverlay');
+}
+function submitInv(){
+  const id = document.getElementById('invId').value;
+  const name = document.getElementById('invName').value.trim();
+  const jenis = document.getElementById('invJenis').value;
+  const lokasi = document.getElementById('invLokasi').value.trim();
+  const jumlah = document.getElementById('invJumlah').value.trim();
+  const tglBeli = document.getElementById('invTglBeli').value;
+  const tglBatas = document.getElementById('invTglBatas').value;
+  const status = document.getElementById('invStatus').value;
+  if(!name){ showToast('Isi nama barang dulu ya'); return; }
+  if(id){ Object.assign(state.inventory.find(x=>x.id===id), {name, jenis, lokasi, jumlah, tglBeli, tglBatas, status}); }
+  else{ state.inventory.push({id:uid(), name, jenis, lokasi, jumlah, tglBeli, tglBatas, status}); }
+  save(); closeModal('invOverlay'); renderInventory(); renderDashboard();
+  showToast('Stok tersimpan 🧊');
+}
+function deleteInv(id){ state.inventory = state.inventory.filter(it=>it.id!==id); save(); renderInventory(); renderDashboard(); }
+
+/* ================= RUTINITAS ================= */
+const STATUS_CYCLE = ['Belum Mulai','Sedang Dikerjakan','Selesai'];
+const STATUS_CLASS = {'Belum Mulai':'status-belum','Sedang Dikerjakan':'status-proses','Selesai':'status-selesai'};
+function cycleChoreStatus(id){
+  const c = state.chores.find(x=>x.id===id); if(!c) return;
+  const idx = STATUS_CYCLE.indexOf(c.status);
+  c.status = STATUS_CYCLE[(idx+1)%STATUS_CYCLE.length];
+  save(); renderChores();
+}
+function resetDaily(){
+  state.chores.forEach(c=>{ if(c.freq==='Harian') c.status='Belum Mulai'; });
+  save(); renderChores();
+  showToast('Status kegiatan harian direset 🔄');
+}
+function choreRowHtml(c){
+  return `<div class="chore-row">
+    <div class="chore-name">${escapeHtml(c.name)}</div>
+    <span class="chore-pic-badge">${c.pic}</span>
+    <button class="chore-status-btn ${STATUS_CLASS[c.status]}" onclick="cycleChoreStatus('${c.id}')">${c.status}</button>
+    <button class="iconbtn" onclick="deleteChore('${c.id}')">✕</button>
+  </div>`;
+}
+function renderChores(){
+  const wrap = document.getElementById('choresWrap');
+  const groups = [
+    {key:'Harian', icon:'☀️', extra:`<button class="btn ghost sm" style="margin-left:auto;" onclick="resetDaily()">🔄 Reset harian</button>`},
+    {key:'Mingguan', icon:'📅', extra:''},
+    {key:'Bulanan', icon:'🗓️', extra:''},
+  ];
+  wrap.innerHTML = groups.map(g=>{
+    const items = state.chores.filter(c=>c.freq===g.key);
+    return `<div class="chore-group">
+      <h4>${g.icon} ${g.key} ${g.extra}</h4>
+      ${items.length ? items.map(choreRowHtml).join('') : '<div class="empty">Belum ada kegiatan.</div>'}
+    </div>`;
+  }).join('');
+}
+function openChoreModal(){
+  document.getElementById('choreName').value='';
+  document.getElementById('choreFreq').value='Harian';
+  document.getElementById('chorePic').value='Bersama';
+  openModal('choreOverlay');
+}
+function submitChore(){
+  const name = document.getElementById('choreName').value.trim();
+  const freq = document.getElementById('choreFreq').value;
+  const pic = document.getElementById('chorePic').value;
+  if(!name){ showToast('Isi nama kegiatan dulu ya'); return; }
+  state.chores.push({id:uid(), name, freq, pic, status:'Belum Mulai'});
+  save(); closeModal('choreOverlay'); renderChores();
+  showToast('Kegiatan ditambahkan 🧹');
+}
+function deleteChore(id){ state.chores = state.chores.filter(c=>c.id!==id); save(); renderChores(); }
+
+/* ================= BACKUP: EKSPOR & IMPOR ================= */
+function exportData(){
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `rumah_tangga_${todayIso()}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  showToast('Data berhasil diekspor! 💾');
+}
+function importData(){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.readAsText(file, 'UTF-8');
+    reader.onload = readerEvent=>{
+      try{
+        const content = JSON.parse(readerEvent.target.result);
+        if(content && content.budgetCategories && content.transactions){
+          state = Object.assign(defaultState(), content);
+          save(); renderAll();
+          showToast('Data sukses diimpor! 🌿');
+        }else{
+          alert('Format file cadangan tidak valid.');
+        }
+      }catch(err){ alert('Gagal membaca file: ' + err.message); }
+    };
+  };
+  input.click();
+}
+
+/* ================= INIT ================= */
+function renderAll(){
+  populateCategorySelects();
+  document.getElementById('inputGaji').value = state.gaji;
+  renderDashboard();
+  renderBudgetCats();
+  renderTransactions();
+  renderGoals();
+  renderMeals();
+  renderShopping();
+  renderInventory();
+  renderChores();
+}
+document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+// Tampilan awal adalah layar login; app baru dirender setelah handleGoogleLogin() atau continueOffline().
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(err=> console.warn('Gagal mendaftarkan service worker', err));
+  });
+}
+</script>
+</body>
+</html>
