@@ -874,7 +874,7 @@ let state = defaultState(); // diisi ulang saat login / lanjut tanpa akun
    pada Google Drive miliknya masing-masing (tidak terlihat/tercampur dengan
    akun lain). Untuk mengaktifkan fitur ini, ganti GOOGLE_CLIENT_ID di bawah
    dengan Client ID OAuth milikmu sendiri (lihat README-INSTALL.md). */
-const GOOGLE_CLIENT_ID = '904859909650-1dcb9nqk1012iv7qoe0udib5b7j61pa3.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = 'GANTI_DENGAN_CLIENT_ID_ANDA.apps.googleusercontent.com';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const DRIVE_FILE_NAME = 'rumah-tangga-data.json';
 
@@ -1095,18 +1095,20 @@ function budgetRowHtml(c, spent, forOverview){
   const ratio = c.budget>0 ? Math.min(spent/c.budget,1)*100 : 0;
   const over = spent > c.budget;
   return `<div class="budget-row">
-    ${forOverview ? '' : `<div class="budget-actions" style="position:absolute; top:12px; right:12px;">
-      <button class="iconbtn" onclick="editBudgetCat('${c.id}')">✎</button>
-      <button class="iconbtn" onclick="deleteBudgetCat('${c.id}')">✕</button>
-    </div>`}
     <div class="budget-top">
       <div>
         <div class="budget-name" style="color:${c.color}">${escapeHtml(c.name)}</div>
         ${c.note ? `<div class="budget-note">${escapeHtml(c.note)}</div>` : ''}
       </div>
-      <div class="budget-nums">
-        ${fmtRp(spent)} / ${fmtRp(c.budget)}<br>
-        <span class="budget-diff ${diff>=0?'pos':'neg'}">${diff>=0?'Sisa ':'Lebih '}${fmtRp(Math.abs(diff))}</span>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+        ${forOverview ? '' : `<div class="budget-actions">
+          <button class="iconbtn" onclick="editBudgetCat('${c.id}')">✎</button>
+          <button class="iconbtn" onclick="deleteBudgetCat('${c.id}')">✕</button>
+        </div>`}
+        <div class="budget-nums">
+          ${fmtRp(spent)} / ${fmtRp(c.budget)}<br>
+          <span class="budget-diff ${diff>=0?'pos':'neg'}">${diff>=0?'Sisa ':'Lebih '}${fmtRp(Math.abs(diff))}</span>
+        </div>
       </div>
     </div>
     <div class="bar-bg"><div class="bar-fg ${over?'over':''}" style="width:${ratio}%; background:${over?'':c.color}"></div></div>
