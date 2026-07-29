@@ -171,12 +171,13 @@
 
   /* transaction list */
   .tlist{ display:flex; flex-direction:column; gap:8px; margin-top:4px; }
-  .trow{ display:flex; align-items:center; justify-content:space-between; padding:11px 13px; background:#fff; border:1px solid var(--line); border-radius:13px; gap:10px; }
-  .trow .left{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .trow{ background:#fff; border:1px solid var(--line); border-radius:13px; padding:11px 13px; }
+  .trow .trow-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
   .trow .badge{ font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap; color:#fff; }
-  .trow .meta{ min-width:0; }
+  .trow .trow-right{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+  .trow .meta{ margin-top:7px; }
   .trow .desc{ font-weight:700; font-size:13.5px; white-space:normal; word-break:break-word; }
-  .trow .date{ font-size:11px; color:var(--plum-soft); }
+  .trow .date{ font-size:11px; color:var(--plum-soft); margin-top:2px; }
   .trow .amt{ font-weight:700; font-size:13.5px; white-space:nowrap; }
   .amt.pos{ color:var(--sage-dark); } .amt.neg{ color:var(--blush-dark); }
 
@@ -1180,17 +1181,17 @@ function txRowHtml(t){
   const badgeColor = t.type==='income' ? '#7E9772' : (cat ? cat.color : '#B9AFB4');
   const badgeLabel = t.type==='income' ? 'Masuk' : (cat ? cat.name : 'Lainnya');
   return `<div class="trow">
-    <div class="left">
+    <div class="trow-top">
       <span class="badge" style="background:${badgeColor}">${escapeHtml(badgeLabel)}</span>
-      <div class="meta">
-        <div class="desc">${escapeHtml(t.desc||'(tanpa keterangan)')}</div>
-        <div class="date">${formatDateId(t.date)}</div>
+      <div class="trow-right">
+        <div class="amt ${cls}">${sign}${fmtRp(t.amount)}</div>
+        <button class="iconbtn" onclick="editTx('${t.id}')">✎</button>
+        <button class="iconbtn" onclick="deleteTx('${t.id}')">✕</button>
       </div>
     </div>
-    <div style="display:flex; align-items:center; gap:6px;">
-      <div class="amt ${cls}">${sign}${fmtRp(t.amount)}</div>
-      <button class="iconbtn" onclick="editTx('${t.id}')">✎</button>
-      <button class="iconbtn" onclick="deleteTx('${t.id}')">✕</button>
+    <div class="meta">
+      <div class="desc">${escapeHtml(t.desc||'(tanpa keterangan)')}</div>
+      <div class="date">${formatDateId(t.date)}</div>
     </div>
   </div>`;
 }
