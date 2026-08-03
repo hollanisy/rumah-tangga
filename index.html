@@ -185,8 +185,10 @@
     #printMenuArea .pm-sub{ color:#8A6A55; font-size:11px; margin:0 0 8px 0; border-bottom:3px solid #F2A63A; padding-bottom:6px; }
     #printMenuArea .print-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     #printMenuArea .print-notes{ flex:1; display:flex; flex-direction:column; margin-top:10px; min-height:0; }
-    #printMenuArea .print-notes h3{ font-family:'Georgia', serif; font-size:13.5px; color:#fff; background:#D9834F; display:inline-block; padding:4px 10px; border-radius:8px; margin:0 0 6px 0; }
-    #printMenuArea .print-notes .notes-lines{ flex:1; background-image:repeating-linear-gradient(to bottom, transparent, transparent 20px, #E8D2B8 20px, #E8D2B8 21px); }
+    #printMenuArea .print-notes h3{ font-family:'Georgia', serif; font-size:13.5px; color:#fff; background:#D9834F; display:inline-block; padding:4px 10px; border-radius:8px; margin:0 0 8px 0; }
+    #printMenuArea .print-notes .notes-lines{ flex:1; display:flex; flex-direction:column; }
+    #printMenuArea .print-notes .notes-line{ flex:1; border-bottom:1px solid #E0C7A8; }
+    #printMenuArea .print-notes .notes-line:last-child{ border-bottom:none; }
     #printMenuArea .print-week{ margin-bottom:10px; page-break-inside:avoid; }
     #printMenuArea .print-week h2{ font-family:'Georgia', serif; font-size:13.5px; color:#fff; padding:4px 10px; border-radius:8px; margin:0 0 5px 0; display:inline-block; }
     #printMenuArea .wk1 h2{ background:#E8543D; } #printMenuArea .wk1 .print-day{ background:#FDEBE7; border-left:4px solid #E8543D; }
@@ -1620,7 +1622,7 @@ function exportMenuPDF(){
     </div>
     <div class="print-notes">
       <h3>📝 Catatan</h3>
-      <div class="notes-lines"><span></span><span></span><span></span></div>
+      <div class="notes-lines">${Array(7).fill('<div class="notes-line"></div>').join('')}</div>
     </div>`;
   window.print();
 }
