@@ -175,15 +175,25 @@
   /* ---- Print (export PDF menu) ---- */
   #printMenuArea{ display:none; }
   @media print{
+    @page{ size: A4 landscape; margin: 8mm; }
     body *{ visibility:hidden; }
     #printMenuArea, #printMenuArea *{ visibility:visible; }
-    #printMenuArea{ display:block !important; position:absolute; top:0; left:0; width:100%; padding:20px; }
-    .print-week{ margin-bottom:18px; page-break-inside:avoid; }
-    .print-week h2{ font-family:'Fraunces', serif; font-size:17px; color:#5C7351; border-bottom:2px solid #E1E9D9; padding-bottom:5px; margin-bottom:8px; }
-    .print-day{ display:flex; gap:10px; padding:6px 0; border-bottom:1px dashed #EBE0D0; font-size:12.5px; }
-    .print-day .pd-name{ font-weight:700; width:70px; flex-shrink:0; }
-    .print-day .pd-body{ flex:1; }
-    .print-day .pd-note{ color:#8A7B81; font-size:11px; }
+    #printMenuArea{ display:block !important; position:absolute; top:0; left:0; width:100%;
+      background:linear-gradient(180deg,#FFF9EE,#FFF3E2); padding:6mm 8mm; font-family:Arial, sans-serif; }
+    #printMenuArea h1{ font-family:'Georgia', serif; color:#D64530; font-size:22px; margin:0 0 2px 0; }
+    #printMenuArea .pm-sub{ color:#8A6A55; font-size:11px; margin:0 0 8px 0; border-bottom:3px solid #F2A63A; padding-bottom:6px; }
+    #printMenuArea .print-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    #printMenuArea .print-week{ margin-bottom:10px; page-break-inside:avoid; }
+    #printMenuArea .print-week h2{ font-family:'Georgia', serif; font-size:13.5px; color:#fff; padding:4px 10px; border-radius:8px; margin:0 0 5px 0; display:inline-block; }
+    #printMenuArea .wk1 h2{ background:#E8543D; } #printMenuArea .wk1 .print-day{ background:#FDEBE7; border-left:4px solid #E8543D; }
+    #printMenuArea .wk2 h2{ background:#4F9D5C; } #printMenuArea .wk2 .print-day{ background:#E9F5EA; border-left:4px solid #4F9D5C; }
+    #printMenuArea .wk3 h2{ background:#F2A63A; } #printMenuArea .wk3 .print-day{ background:#FDF1DD; border-left:4px solid #F2A63A; }
+    #printMenuArea .wk4 h2{ background:#3E97C9; } #printMenuArea .wk4 .print-day{ background:#E7F3FA; border-left:4px solid #3E97C9; }
+    #printMenuArea .print-day{ display:flex; gap:8px; padding:4px 8px; margin-bottom:3px; border-radius:6px; font-size:10.5px; }
+    #printMenuArea .print-day .pd-name{ font-weight:700; width:44px; flex-shrink:0; color:#3B2E27; }
+    #printMenuArea .print-day .pd-body{ flex:1; display:flex; flex-direction:column; color:#3B2E27; }
+    #printMenuArea .print-day .pd-line{ line-height:1.35; }
+    #printMenuArea .print-day .pd-note{ color:#8A6A55; font-size:9.5px; font-style:italic; }
   }
   .trow{ background:#fff; border:1px solid var(--line); border-radius:13px; padding:11px 13px; }
   .trow .trow-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
@@ -894,7 +904,7 @@ let state = defaultState(); // diisi ulang saat login / lanjut tanpa akun
    pada Google Drive miliknya masing-masing (tidak terlihat/tercampur dengan
    akun lain). Untuk mengaktifkan fitur ini, ganti GOOGLE_CLIENT_ID di bawah
    dengan Client ID OAuth milikmu sendiri (lihat README-INSTALL.md). */
-const GOOGLE_CLIENT_ID = '904859909650-1dcb9nqk1012iv7qoe0udib5b7j61pa3.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = 'GANTI_DENGAN_CLIENT_ID_ANDA.apps.googleusercontent.com';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const DRIVE_FILE_NAME = 'rumah-tangga-data.json';
 
@@ -1446,6 +1456,9 @@ function renderMeals(){
   }).join('');
 }
 /* ---- Export menu: JPG (canvas) & PDF (print) ---- */
+const WEEK_COLORS = { 1:'#E8543D', 2:'#4F9D5C', 3:'#F2A63A', 4:'#3E97C9' }; // tomat, basil, wortel, blueberry
+const WEEK_BG     = { 1:'#FDEBE7', 2:'#E9F5EA', 3:'#FDF1DD', 4:'#E7F3FA' };
+
 function getMonthMenuData(){
   return WEEKS.map(w=>({
     week: w,
@@ -1455,89 +1468,100 @@ function getMonthMenuData(){
     })
   }));
 }
-function wrapCanvasText(ctx, text, maxWidth){
-  const words = String(text).split(' ');
-  const lines = [];
-  let line = '';
-  words.forEach(word=>{
-    const test = line ? line+' '+word : word;
-    if(ctx.measureText(test).width > maxWidth && line){
-      lines.push(line);
-      line = word;
-    } else {
-      line = test;
-    }
-  });
-  if(line) lines.push(line);
-  return lines;
+function truncateCanvasText(ctx, text, maxWidth){
+  text = String(text);
+  if(ctx.measureText(text).width <= maxWidth) return text;
+  let lo = 0, hi = text.length;
+  while(lo < hi){
+    const mid = Math.ceil((lo+hi)/2);
+    if(ctx.measureText(text.slice(0,mid)+'…').width <= maxWidth) lo = mid; else hi = mid-1;
+  }
+  return text.slice(0,lo)+'…';
 }
 function exportMenuImage(){
   const data = getMonthMenuData();
-  const W = 900, PAD = 36, colDay = 110, textW = W - PAD*2 - colDay - 16;
-  const measureCanvas = document.createElement('canvas');
-  const mctx = measureCanvas.getContext('2d');
+  const byWeek = {}; data.forEach(w=> byWeek[w.week]=w);
+  const columns = [[byWeek[1], byWeek[3]], [byWeek[2], byWeek[4]]];
 
-  function layoutPass(ctx){
-    let y = 0;
-    const blocks = [];
-    y += 70; // title area
-    data.forEach(wk=>{
-      y += 34; // week header
-      wk.days.forEach(d=>{
-        ctx.font = '600 14px Arial';
-        const proteinLines = wrapCanvasText(ctx, '🍗 '+d.protein, textW);
-        const sayurLines = wrapCanvasText(ctx, '🥬 '+d.sayur, textW);
-        ctx.font = '13px Arial';
-        const noteLines = d.note ? wrapCanvasText(ctx, '📝 '+d.note, textW) : [];
-        const lines = proteinLines.length + sayurLines.length + noteLines.length;
-        const rowH = Math.max(lines*19 + 14, 44);
-        blocks.push({week:wk.week, d, proteinLines, sayurLines, noteLines, rowH, yStart:y});
-        y += rowH;
-      });
-      y += 14;
-    });
-    return {totalH: y+40, blocks};
-  }
+  const W = 1040, PAD = 26, GAP = 22, TITLE_H = 88;
+  const colW = (W - PAD*2 - GAP) / 2;
+  const dayNameW = 60, leftBar = 5, innerPad = 10;
+  const textX = leftBar + innerPad*2 + dayNameW;
+  const textW = colW - textX - 12;
 
-  const {totalH, blocks} = layoutPass(mctx);
   const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = totalH;
   const ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = '#FBF6ED'; ctx.fillRect(0,0,W,totalH);
-  ctx.fillStyle = '#453842';
-  ctx.font = '700 26px Georgia';
-  ctx.fillText('🍲 Rencana Menu Masakan', PAD, 46);
-  ctx.fillStyle = '#8A7B81';
-  ctx.font = '13px Arial';
-  ctx.fillText('Ringkasan 4 minggu · Diekspor '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}), PAD, 66);
+  function layoutColumn(weeksArr){
+    let y = TITLE_H;
+    const blocks = [];
+    weeksArr.forEach(wk=>{
+      if(!wk) return;
+      blocks.push({type:'header', week:wk.week, y}); y += 30;
+      wk.days.forEach(d=>{
+        const rowH = d.note ? 58 : 44;
+        blocks.push({type:'day', week:wk.week, d, y, rowH});
+        y += rowH;
+      });
+      y += 12;
+    });
+    return {h:y, blocks};
+  }
+  const layouts = columns.map(layoutColumn);
+  const totalH = Math.max(layouts[0].h, layouts[1].h) + 24;
+  canvas.width = W; canvas.height = totalH;
 
-  let lastWeek = null;
-  blocks.forEach(b=>{
-    if(b.week !== lastWeek){
-      lastWeek = b.week;
-      ctx.fillStyle = '#7E9772';
-      ctx.font = '700 16px Georgia';
-      ctx.fillText('Minggu '+b.week, PAD, b.yStart+22-14);
-      ctx.strokeStyle = '#E1E9D9'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(PAD, b.yStart+30-14); ctx.lineTo(W-PAD, b.yStart+30-14); ctx.stroke();
-    }
-    let ty = b.yStart + 30;
-    ctx.fillStyle = '#453842';
-    ctx.font = '700 13.5px Arial';
-    ctx.fillText(b.d.day, PAD, ty);
-    let contentY = ty - 12;
-    ctx.font = '600 14px Arial';
-    ctx.fillStyle = '#453842';
-    b.proteinLines.forEach(line=>{ contentY += 19; ctx.fillText(line, PAD+colDay, contentY); });
-    b.sayurLines.forEach(line=>{ contentY += 19; ctx.fillText(line, PAD+colDay, contentY); });
-    if(b.noteLines.length){
-      ctx.font = '13px Arial';
-      ctx.fillStyle = '#8A7B81';
-      b.noteLines.forEach(line=>{ contentY += 19; ctx.fillText(line, PAD+colDay, contentY); });
-    }
-    ctx.strokeStyle = '#EBE0D0'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(PAD, b.yStart+b.rowH-4); ctx.lineTo(W-PAD, b.yStart+b.rowH-4); ctx.stroke();
+  // background
+  const bgGrad = ctx.createLinearGradient(0,0,0,totalH);
+  bgGrad.addColorStop(0, '#FFF9EE');
+  bgGrad.addColorStop(1, '#FFF3E2');
+  ctx.fillStyle = bgGrad; ctx.fillRect(0,0,W,totalH);
+
+  // title
+  ctx.fillStyle = '#D64530';
+  ctx.font = '800 28px Georgia';
+  ctx.fillText('🍅 Rencana Menu Masakan 🥦', PAD, 42);
+  ctx.fillStyle = '#8A6A55';
+  ctx.font = '13px Arial';
+  ctx.fillText('Ringkasan 4 minggu · Diekspor '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}), PAD, 62);
+  ctx.strokeStyle = '#F2A63A'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(PAD, 74); ctx.lineTo(W-PAD, 74); ctx.stroke();
+
+  columns.forEach((weeksArr, ci)=>{
+    const colX = PAD + ci*(colW+GAP);
+    layouts[ci].blocks.forEach(b=>{
+      const wc = WEEK_COLORS[b.week], wbg = WEEK_BG[b.week];
+      if(b.type==='header'){
+        ctx.fillStyle = wc;
+        roundRect(ctx, colX, b.y, colW, 24, 8); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '700 13.5px Arial';
+        ctx.fillText('Minggu '+b.week, colX+12, b.y+16.5);
+      } else {
+        // row bg
+        ctx.fillStyle = wbg;
+        roundRect(ctx, colX, b.y, colW, b.rowH-6, 8); ctx.fill();
+        // left accent bar
+        ctx.fillStyle = wc;
+        roundRect(ctx, colX, b.y, leftBar, b.rowH-6, 3); ctx.fill();
+        // day name
+        ctx.fillStyle = '#4A3B32';
+        ctx.font = '700 12.5px Arial';
+        wrapDayName(ctx, b.d.day, colX+leftBar+innerPad, b.y+16, dayNameW);
+        // protein / sayur / note
+        let ty = b.y+15;
+        ctx.font = '600 12.5px Arial';
+        ctx.fillStyle = '#3B2E27';
+        ctx.fillText('🍗 '+truncateCanvasText(ctx,b.d.protein,textW-20), colX+textX, ty);
+        ty += 17;
+        ctx.fillText('🥬 '+truncateCanvasText(ctx,b.d.sayur,textW-20), colX+textX, ty);
+        if(b.d.note){
+          ty += 16;
+          ctx.font = '11px Arial'; ctx.fillStyle = '#8A6A55';
+          ctx.fillText('📝 '+truncateCanvasText(ctx,b.d.note,textW-20), colX+textX, ty);
+        }
+      }
+    });
   });
 
   canvas.toBlob(blob=>{
@@ -1548,27 +1572,48 @@ function exportMenuImage(){
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url), 3000);
     showToast('Gambar menu berhasil diekspor 🖼️');
-  }, 'image/jpeg', 0.92);
+  }, 'image/jpeg', 0.94);
+}
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function wrapDayName(ctx, name, x, y, maxWidth){
+  // day names are short (Senin..Sabtu) so single line is enough
+  ctx.fillText(truncateCanvasText(ctx, name, maxWidth), x, y);
 }
 function exportMenuPDF(){
   const data = getMonthMenuData();
+  const byWeek = {}; data.forEach(w=> byWeek[w.week]=w);
   const area = document.getElementById('printMenuArea');
-  let html = `<h1 style="font-family:Georgia,serif; color:#453842; margin-bottom:2px;">🍲 Rencana Menu Masakan</h1>
-  <p style="color:#8A7B81; font-size:12px; margin-top:0; margin-bottom:16px;">Ringkasan 4 minggu · Diekspor ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</p>`;
-  data.forEach(wk=>{
-    html += `<div class="print-week"><h2>Minggu ${wk.week}</h2>`;
-    wk.days.forEach(d=>{
-      html += `<div class="print-day">
+
+  function weekBlockHtml(wk){
+    if(!wk) return '';
+    return `<div class="print-week wk${wk.week}">
+      <h2>Minggu ${wk.week}</h2>
+      ${wk.days.map(d=>`<div class="print-day">
         <div class="pd-name">${escapeHtml(d.day)}</div>
         <div class="pd-body">
-          🍗 ${escapeHtml(d.protein)}<br>🥬 ${escapeHtml(d.sayur)}
-          ${d.note ? `<div class="pd-note">📝 ${escapeHtml(d.note)}</div>` : ''}
+          <span class="pd-line">🍗 ${escapeHtml(d.protein)}</span>
+          <span class="pd-line">🥬 ${escapeHtml(d.sayur)}</span>
+          ${d.note ? `<span class="pd-note">📝 ${escapeHtml(d.note)}</span>` : ''}
         </div>
-      </div>`;
-    });
-    html += `</div>`;
-  });
-  area.innerHTML = html;
+      </div>`).join('')}
+    </div>`;
+  }
+
+  area.innerHTML = `
+    <h1>🍅 Rencana Menu Masakan 🥦</h1>
+    <p class="pm-sub">Ringkasan 4 minggu · Diekspor ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</p>
+    <div class="print-grid">
+      <div class="print-col">${weekBlockHtml(byWeek[1])}${weekBlockHtml(byWeek[3])}</div>
+      <div class="print-col">${weekBlockHtml(byWeek[2])}${weekBlockHtml(byWeek[4])}</div>
+    </div>`;
   window.print();
 }
 function editMeal(key){
